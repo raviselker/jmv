@@ -1,4 +1,3 @@
-
 corrPartClass <- R6::R6Class(
     "corrPartClass",
     inherit = corrPartBase,
@@ -26,26 +25,19 @@ corrPartClass <- R6::R6Class(
             controls <- self$options$controls
             type <- self$options$type
 
-            if (hyp == 'pos')
-                hyp <- 'greater'
-            else if (hyp == 'neg')
-                hyp <- 'less'
-            else
-                hyp <- 'equal'
-
             results <- list()
             if (nVars > 1) {
                 for (i in 1:nVars) {
                     rowVar <- vars[[i]]
                     for (j in 1:nVars) {
-                        if (i == j || (type != 'semi' && j > i))
-                            next
+                        if (j >= i) { next }
                         colVar <- vars[[j]]
-                        results[[rowVar]][[colVar]] <- private$.test(rowVar, colVar, controls, type)
+                        resLst <- private$.test(rowVar, colVar, controls, type, hyp)
+                        results[[rowVar]][[colVar]] <- resLst[, 1]
+                        if (type == 'semi') { results[[colVar]][[rowVar]] <- resLst[, 2] }
                     }
                 }
             }
-
             return(results)
         },
 
@@ -110,25 +102,22 @@ corrPartClass <- R6::R6Class(
             controls <- self$options$controls
             nControls <- length(controls)
 
-            if (length(controls) > 0 && type != 'zero') {
+            if (length(controls) > 0) {
                 matrix$setNote('controls', jmvcore::format('controlling for {}', listItems(controls)))
             }
 
             if (hyp == 'pos') {
                 matrix$setNote('hyp', 'H\u2090 is positive correlation')
-                hyp <- 'greater'
                 if (flag)
                     matrix$setNote('flag', '* p < .05, ** p < .01, *** p < .001, one-tailed')
             }
             else if (hyp == 'neg') {
                 matrix$setNote('hyp', 'H\u2090 is negative correlation')
-                hyp <- 'less'
                 if (flag)
                     matrix$setNote('flag', '* p < .05, ** p < .01, *** p < .001, one-tailed')
             }
             else {
                 matrix$setNote('hyp', NULL)
-                hyp <- 'two.sided'
                 if (flag)
                     matrix$setNote('flag', '* p < .05, ** p < .01, *** p < .001')
             }
@@ -234,10 +223,8 @@ corrPartClass <- R6::R6Class(
             data[[var1]] <- jmvcore::toNumeric(dataRaw[[var1]])
             data[[var2]] <- jmvcore::toNumeric(dataRaw[[var2]])
 
-            if (type != 'zero') {
-                for (control in controls) {
-                    data[[control]] <- jmvcore::toNumeric(dataRaw[[control]])
-                }
+            for (control in controls) {
+                data[[control]] <- jmvcore::toNumeric(dataRaw[[control]])
             }
 
             attr(data, 'row.names') <- seq_len(length(data[[1]]))
@@ -246,72 +233,59 @@ corrPartClass <- R6::R6Class(
 
             return(data)
         },
-        .test = function(var1, var2, controls, type) {
+        .test = function(var1, var2, controls, type, hyp) {
 
             data <- private$.cleanData(var1, var2)
             var1 <- data[[var1]]
             var2 <- data[[var2]]
 
-            if (type != 'zero' && length(controls) > 0)
-                controls <- data[, controls]
-
-            results <- list()
+            n <- length(data[[1]])
+            d <- 1 + as.integer(type == 'semi')
+            c <- length(controls)
+            if (c == 0) { rdta <- cbind(var1, var2) } else { rdta = cbind(var1, var2, data[, controls]) }
+            results <- replicate(d, list(r = NaN, rp = 1, rho = NaN, rhop = 1, tau = NaN, taup = 1, n = n))
 
             suppressWarnings({
-
-                if (type == 'zero' || length(controls) == 0) {
-
-                    res1 <- try(cor.test(var1, var2, method='pearson'))
-                    res2 <- try(cor.test(var1, var2, method='spearman'))
-                    res3 <- list()
-                    if (self$options$kendall)
-                        res3 <- try(cor.test(var1, var2, method='kendall'))
-
-                } else if (type == "part") {
-
-                    res1 <- try(ppcor::pcor.test(var1, var2, controls, method='pearson'))
-                    res2 <- try(ppcor::pcor.test(var1, var2, controls, method='spearman'))
-                    res3 <- list()
-                    if (self$options$kendall)
-                        res3 <- try(ppcor::pcor.test(var1, var2, controls, method='kendall'))
-
-                } else {
-
-                    res1 <- try(ppcor::spcor.test(var1, var2, controls, method='pearson'))
-                    res2 <- try(ppcor::spcor.test(var1, var2, controls, method='spearman'))
-                    res3 <- list()
-                    if (self$options$kendall)
-                        res3 <- try(ppcor::spcor.test(var1, var2, controls, method='kendall'))
-
-                }
-
-                if ( ! base::inherits(res1, 'try-error')) {
-                    results$r  <- res1$estimate
-                    results$rp <- res1$p.value
-                } else {
-                    results$r <- NaN
-                    results$rp <- NaN
-                }
-
-                if ( ! base::inherits(res2, 'try-error')) {
-                    results$rho <- res2$estimate
-                    results$rhop <- res2$p.value
-                } else {
-                    results$rho <- NaN
-                    results$rhop <- NaN
-                }
-
-                if ( ! base::inherits(res3, 'try-error')) {
-                    results$tau <- res3$estimate
-                    results$taup <- res3$p.value
-                } else {
-                    results$tau <- NaN
-                    results$taup <- NaN
-                }
-
-                results$n <- length(data[[1]])
+                for (method in c('pearson', 'spearman', 'kendall')) {
+                    # calculate 'kendall' only if the respective tick box is set
+                    if (method == 'kendall' && self$options$kendall == F) { next }
+                        
+                    try({
+                        # the following code took some inspiration from the ppcor-package (https://cran.r-project.org/web/packages/ppcor)
+                        # calculate covariance matrix and invert it
+                        cvx <- cov(rdta, method = method)
+	                    if (det(cvx) < .Machine$double.eps) { icvx <- ginv(cvx) } else { icvx <- solve(cvx) }
+	                
+	                    # calculation of the partial correlation coefficient 
+                        if (type == 'part') {
+                            results[ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau')), 1] <- -cov2cor(icvx)[1, 2]
+                        # calculation of the semi-partial correlation coefficients
+                        # this is more complex, to speed up processing both row and column variables
+                        # are calculated at once and given back in a list with two entries
+                        } else {
+                            spcor <- -cov2cor(icvx) / sqrt(diag(cvx)) / sqrt(abs(diag(icvx) - t(t(icvx ^ 2) / diag(icvx))))
+                            results[ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau')), 1] <- spcor[1, 2]
+                            results[ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau')), 2] <- spcor[2, 1]
+                        }
+                
+	                # assign p-value 
+                        # repeated depending on whether it is a semi-partial correlation (d = 2) or not (d = 1)
+                        for (i in 1:d) {            
+                            # calculate the p-values for undirected ('corr') and directed hypotheses ('pos', 'neg')
+                            # if the correlation coefficient doesn't match the proposed direction, the value is not set and remains NA
+                            if (hyp == 'corr') {
+                                if      (method == 'pearson')  { results[, i]$rp   <- 2 *    pt(-abs(results[, i]$r   * sqrt((n - 2 - c) / (1 - results[, i]$r   ^ 2))), (n - 2 - c)) }
+                                else if (method == 'spearman') { results[, i]$rhop <- 2 *    pt(-abs(results[, i]$rho * sqrt((n - 2 - c) / (1 - results[, i]$rho ^ 2))), (n - 2 - c)) }
+                                else if (method == 'kendall')  { results[, i]$taup <- 2 * pnorm(-abs(results[, i]$tau / sqrt(2 * (2 * (n - c) + 5) / (9 * (n - c) * (n - 1 - c)))))   }
+                            } else if ((hyp == 'neg' && results[, i]$r   < 0) || (hyp == 'pos' && results[, i]$r   > 0)) {
+                                if      (method == 'pearson')  { results[, i]$rp   <-        pt(-abs(results[, i]$r   * sqrt((n - 2 - c) / (1 - results[, i]$r   ^ 2))), (n - 2 - c)) }
+                                else if (method == 'spearman') { results[, i]$rhop <-        pt(-abs(results[, i]$rho * sqrt((n - 2 - c) / (1 - results[, i]$rho ^ 2))), (n - 2 - c)) }
+                                else if (method == 'kendall')  { results[, i]$taup <-     pnorm(-abs(results[, i]$tau / sqrt(2 * (2 * (n - c) + 5) / (9 * (n - c) * (n - 1 - c)))))   }
+                            }
+                        } # for
+                    }) # try
+                } # for
             }) # suppressWarnings
-
             results
         })
 )
