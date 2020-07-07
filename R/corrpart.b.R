@@ -30,13 +30,15 @@ corrPartClass <- R6::R6Class(
                 for (i in 1:nVars) {
                     rowVar <- vars[[i]]
                     for (j in 1:nVars) {
-                        if (j >= i) { next }
+                        if (j >= i)
+			    next
                         colVar <- vars[[j]]
                         resLst <- private$.test(rowVar, colVar, controls, type, hyp)
                         results[[rowVar]][[colVar]] <- resLst[, 1]
-                        if (type == 'semi') { results[[colVar]][[rowVar]] <- resLst[, 2] }
+                        if (type == 'semi')
+		            results[[colVar]][[rowVar]] <- resLst[, 2]
                     }
-                }
+                } 
             }
             return(results)
         },
@@ -239,52 +241,59 @@ corrPartClass <- R6::R6Class(
             var1 <- data[[var1]]
             var2 <- data[[var2]]
 
-            n <- length(data[[1]])
-            d <- 1 + as.integer(type == 'semi')
-            c <- length(controls)
-            if (c == 0) { rdta <- cbind(var1, var2) } else { rdta = cbind(var1, var2, data[, controls]) }
-            results <- replicate(d, list(r = NaN, rp = 1, rho = NaN, rhop = 1, tau = NaN, taup = 1, n = n))
+            nSubj <- length(data[[1]])
+            nResR <- 1 + as.integer(type == 'semi')
+            nCtrV <- length(controls)
+            if (nCtrV == 0) { rdta <- cbind(var1, var2) } else { rdta = cbind(var1, var2, data[, controls]) }
+            results <- replicate(nResR, list(r = NaN, rp = 1, rho = NaN, rhop = 1, tau = NaN, taup = 1, n = nSubj))
 
             suppressWarnings({
                 for (method in c('pearson', 'spearman', 'kendall')) {
                     # calculate 'kendall' only if the respective tick box is set
-                    if (method == 'kendall' && self$options$kendall == F) { next }
+                    if (method == 'kendall' && self$options$kendall == FALSE)
+			next
                         
                     try({
                         # the following code took some inspiration from the ppcor-package (https://cran.r-project.org/web/packages/ppcor)
                         # calculate covariance matrix and invert it
-                        cvx <- cov(rdta, method = method)
-	                    if (det(cvx) < .Machine$double.eps) { icvx <- ginv(cvx) } else { icvx <- solve(cvx) }
+                        cvx  <- cov(rdta, method = method)
+			icvx <- ifelse(det(cvx) < .Machine$double.eps, ginv(cvx), solve(cvx))
 	                
-	                    # calculation of the partial correlation coefficient 
-                        if (type == 'part') {
-                            results[ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau')), 1] <- -cov2cor(icvx)[1, 2]
+			# determine string for statistic (r, rho or tau)
+			resStr = ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau'))
+	                # calculation of the partial correlation coefficient
+			if (type == 'part') {
+                            results[resStr, 1] <- -cov2cor(icvx)[1, 2]
                         # calculation of the semi-partial correlation coefficients
                         # this is more complex, to speed up processing both row and column variables
                         # are calculated at once and given back in a list with two entries
                         } else {
                             spcor <- -cov2cor(icvx) / sqrt(diag(cvx)) / sqrt(abs(diag(icvx) - t(t(icvx ^ 2) / diag(icvx))))
-                            results[ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau')), 1] <- spcor[1, 2]
-                            results[ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau')), 2] <- spcor[2, 1]
+                            results[resStr, 1] <- spcor[1, 2]
+                            results[resStr, 2] <- spcor[2, 1]
                         }
                 
 	                # assign p-value 
-                        # repeated depending on whether it is a semi-partial correlation (d = 2) or not (d = 1)
-                        for (i in 1:d) {            
+                        # repeated depending on whether it is a semi-partial correlation (nResR = 2) or not (nResR = 1)
+                        for (i in 1:nResR) {
                             # calculate the p-values for undirected ('corr') and directed hypotheses ('pos', 'neg')
                             # if the correlation coefficient doesn't match the proposed direction, the value is not set and remains NA
                             if (hyp == 'corr') {
-                                if      (method == 'pearson')  { results[, i]$rp   <- 2 *    pt(-abs(results[, i]$r   * sqrt((n - 2 - c) / (1 - results[, i]$r   ^ 2))), (n - 2 - c)) }
-                                else if (method == 'spearman') { results[, i]$rhop <- 2 *    pt(-abs(results[, i]$rho * sqrt((n - 2 - c) / (1 - results[, i]$rho ^ 2))), (n - 2 - c)) }
-                                else if (method == 'kendall')  { results[, i]$taup <- 2 * pnorm(-abs(results[, i]$tau / sqrt(2 * (2 * (n - c) + 5) / (9 * (n - c) * (n - 1 - c)))))   }
-                            } else if ((hyp == 'neg' && results[, i]$r   < 0) || (hyp == 'pos' && results[, i]$r   > 0)) {
-                                if      (method == 'pearson')  { results[, i]$rp   <-        pt(-abs(results[, i]$r   * sqrt((n - 2 - c) / (1 - results[, i]$r   ^ 2))), (n - 2 - c)) }
-                                else if (method == 'spearman') { results[, i]$rhop <-        pt(-abs(results[, i]$rho * sqrt((n - 2 - c) / (1 - results[, i]$rho ^ 2))), (n - 2 - c)) }
-                                else if (method == 'kendall')  { results[, i]$taup <-     pnorm(-abs(results[, i]$tau / sqrt(2 * (2 * (n - c) + 5) / (9 * (n - c) * (n - 1 - c)))))   }
+				if (method == 'kendall') {
+				    results[paste0(resStr, 'p'), i] <- 2 * pnorm(-abs(results[resStr, i] / sqrt(2 * (2 * (nSubj - nCtrV) + 5) / (9 * (nSubj - nCtrV) * (nSubj - 1 - nCtrV)))))
+				} else {
+				    results[paste0(resStr, 'p'), i] <- 2 *    pt(-abs(results[resStr, i] * sqrt((nSubj - 2 - nCtrV) / (1 - results[resStr, i] ^ 2))),  (nSubj - 2 - nCtrV))
+			        }
+                            } else if ((hyp == 'neg' && results[resStr, i] < 0) || (hyp == 'pos' && results[resStr, i] > 0)) {
+				if (method == 'kendall') {
+				    results[paste0(resStr, 'p'), i] <-     pnorm(-abs(results[resStr, i] / sqrt(2 * (2 * (nSubj - nCtrV) + 5) / (9 * (nSubj - nCtrV) * (nSubj - 1 - nCtrV)))))
+				} else {
+				    results[paste0(resStr, 'p'), i] <-        pt(-abs(results[resStr, i] * sqrt((nSubj - 2 - nCtrV) / (1 - results[resStr, i] ^ 2))),  (nSubj - 2 - nCtrV))
+				}
                             }
                         } # for
                     }) # try
-                } # for
+                } # for - method
             }) # suppressWarnings
             results
         })
