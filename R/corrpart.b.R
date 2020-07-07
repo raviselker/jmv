@@ -250,27 +250,30 @@ corrPartClass <- R6::R6Class(
             suppressWarnings({
                 for (method in c('pearson', 'spearman', 'kendall')) {
                     # calculate 'kendall' only if the respective tick box is set
-                    if (method == 'kendall' && self$options$kendall == FALSE)
+                    if (method == 'kendall' && !self$options$kendall)
 			next
                         
                     try({
                         # the following code took some inspiration from the ppcor-package (https://cran.r-project.org/web/packages/ppcor)
                         # calculate covariance matrix and invert it
                         cvx  <- cov(rdta, method = method)
-			icvx <- ifelse(det(cvx) < .Machine$double.eps, ginv(cvx), solve(cvx))
+                        if (det(cvx) < .Machine$double.eps) 
+                            icvx = ginv(cvx)
+                        else
+                            icvx = solve(cvx)
 	                
 			# determine string for statistic (r, rho or tau)
-			resStr = ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau'))
+			statNm = ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau'))
 	                # calculation of the partial correlation coefficient
 			if (type == 'part') {
-                            results[resStr, 1] <- -cov2cor(icvx)[1, 2]
+                            results[[statNm, 1]] <- -cov2cor(icvx)[1, 2]
                         # calculation of the semi-partial correlation coefficients
                         # this is more complex, to speed up processing both row and column variables
                         # are calculated at once and given back in a list with two entries
                         } else {
                             spcor <- -cov2cor(icvx) / sqrt(diag(cvx)) / sqrt(abs(diag(icvx) - t(t(icvx ^ 2) / diag(icvx))))
-                            results[resStr, 1] <- spcor[1, 2]
-                            results[resStr, 2] <- spcor[2, 1]
+                            results[[statNm, 1]] <- spcor[1, 2]
+                            results[[statNm, 2]] <- spcor[2, 1]
                         }
                 
 	                # assign p-value 
@@ -280,21 +283,22 @@ corrPartClass <- R6::R6Class(
                             # if the correlation coefficient doesn't match the proposed direction, the value is not set and remains NA
                             if (hyp == 'corr') {
 				if (method == 'kendall') {
-				    results[paste0(resStr, 'p'), i] <- 2 * pnorm(-abs(results[resStr, i] / sqrt(2 * (2 * (nSubj - nCtrV) + 5) / (9 * (nSubj - nCtrV) * (nSubj - 1 - nCtrV)))))
+				    results[paste0(statNm, 'p'), i] <- 2 * pnorm(-abs(results[[statNm, i]] / sqrt(2 * (2 * (nSubj - nCtrV) + 5) / (9 * (nSubj - nCtrV) *  (nSubj - 1 - nCtrV)))))
 				} else {
-				    results[paste0(resStr, 'p'), i] <- 2 *    pt(-abs(results[resStr, i] * sqrt((nSubj - 2 - nCtrV) / (1 - results[resStr, i] ^ 2))),  (nSubj - 2 - nCtrV))
+				    results[paste0(statNm, 'p'), i] <- 2 *    pt(-abs(results[[statNm, i]] * sqrt((nSubj - 2 - nCtrV) / (1 - results[[statNm, i]] ^ 2))), (nSubj - 2 - nCtrV))
 			        }
-                            } else if ((hyp == 'neg' && results[resStr, i] < 0) || (hyp == 'pos' && results[resStr, i] > 0)) {
+                            } else if ((hyp == 'neg' && results[statNm, i] < 0) || (hyp == 'pos' && results[statNm, i] > 0)) {
 				if (method == 'kendall') {
-				    results[paste0(resStr, 'p'), i] <-     pnorm(-abs(results[resStr, i] / sqrt(2 * (2 * (nSubj - nCtrV) + 5) / (9 * (nSubj - nCtrV) * (nSubj - 1 - nCtrV)))))
+				    results[paste0(statNm, 'p'), i] <-     pnorm(-abs(results[[statNm, i]] / sqrt(2 * (2 * (nSubj - nCtrV) + 5) / (9 * (nSubj - nCtrV) *  (nSubj - 1 - nCtrV)))))
 				} else {
-				    results[paste0(resStr, 'p'), i] <-        pt(-abs(results[resStr, i] * sqrt((nSubj - 2 - nCtrV) / (1 - results[resStr, i] ^ 2))),  (nSubj - 2 - nCtrV))
+				    results[paste0(statNm, 'p'), i] <-        pt(-abs(results[[statNm, i]] * sqrt((nSubj - 2 - nCtrV) / (1 - results[[statNm, i]] ^ 2))), (nSubj - 2 - nCtrV))
 				}
                             }
-                        } # for
-                    }) # try
-                } # for - method
-            }) # suppressWarnings
+                        }
+                    })
+                }
+            })
             results
-        })
+        }
+    )
 )
