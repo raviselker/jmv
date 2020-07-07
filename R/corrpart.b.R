@@ -263,7 +263,13 @@ corrPartClass <- R6::R6Class(
                             icvx = solve(cvx)
 	                
 			# determine string for statistic (r, rho or tau)
-			statNm = ifelse(method == 'pearson', 'r', ifelse(method == 'spearman', 'rho', 'tau'))
+			if      (method == 'pearson')
+			    statNm <- 'r'
+			else if (method == 'spearman')
+			    statNm <- 'rho'
+			else if (method == 'kendall')
+			    statNm <- 'tau'
+
 	                # calculation of the partial correlation coefficient
 			if (type == 'part') {
                             results[[statNm, 1]] <- -cov2cor(icvx)[1, 2]
