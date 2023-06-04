@@ -21,15 +21,14 @@ contTablesClass <- R6::R6Class(
     private=list(
         #### Member variables ----
         .countsName = NULL,
+
         #### Init + run functions ----
         .init=function() {
-
             rowVarName <- self$options$rows
             colVarName <- self$options$cols
             layerNames <- self$options$layers
             countsName <- self$options$counts
 
-            freqs <- self$results$freqs
             chiSq <- self$results$chiSq
             nom   <- self$results$nom
             odds  <- self$results$odds
@@ -42,7 +41,6 @@ contTablesClass <- R6::R6Class(
             reversed <- rev(layerNames)
             for (i in seq_along(reversed)) {
                 layer <- reversed[[i]]
-                freqs$addColumn(name=layer, type='text', combineBelow=TRUE)
                 chiSq$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
                 odds$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
                 nom$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
@@ -51,142 +49,7 @@ contTablesClass <- R6::R6Class(
                 mh$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
             }
 
-            # add the row column, containing the row variable
-            # fill in dots, if no row variable specified
 
-            if ( ! is.null(rowVarName))
-                title <- rowVarName
-            else
-                title <- '.'
-
-            freqs$addColumn(
-                name=title,
-                title=title,
-                type='text')
-
-            # add the column columns (from the column variable)
-            # fill in dots, if no column variable specified
-
-            if ( ! is.null(colVarName)) {
-                superTitle <- colVarName
-                levels <- base::levels(data[[colVarName]])
-            }
-            else {
-                superTitle <- '.'
-                levels <- c('.', '.')
-            }
-
-            subNames  <- c('[count]', '[expected]', '[pcRow]', '[pcCol]', '[pcTot]')
-            subTitles <- c(.('Observed'), .('Expected'), .('% within row'), .('% within column'), .('% of total'))
-            visible   <- c('(obs)', '(exp)', '(pcRow)', '(pcCol)', '(pcTot)')
-            types     <- c('integer', 'number', 'number', 'number', 'number')
-            formats   <- c('', '', 'pc', 'pc', 'pc')
-
-            # iterate over the sub rows
-
-            for (j in seq_along(subNames)) {
-                subName <- subNames[[j]]
-                if (subName == '[count]')
-                   v <- '(obs && (exp || pcRow || pcCol || pcTot))'
-                else
-                    v <- visible[j]
-
-                freqs$addColumn(
-                    name=paste0('type', subName),
-                    title='',
-                    type='text',
-                    visible=v)
-            }
-
-            for (i in seq_along(levels)) {
-                level <- levels[[i]]
-
-                for (j in seq_along(subNames)) {
-                    subName <- subNames[[j]]
-                    freqs$addColumn(
-                        name=paste0(i, subName),
-                        title=level,
-                        superTitle=superTitle,
-                        type=types[j],
-                        format=formats[j],
-                        visible=visible[j])
-                }
-            }
-
-            # add the Total column
-
-            if (self$options$obs) {
-                freqs$addColumn(
-                    name='.total[count]',
-                    title=.('Total'),
-                    type='integer')
-            }
-
-            if (self$options$exp) {
-                freqs$addColumn(
-                    name='.total[exp]',
-                    title=.('Total'),
-                    type='number')
-            }
-
-            if (self$options$pcRow) {
-                freqs$addColumn(
-                    name='.total[pcRow]',
-                    title=.('Total'),
-                    type='number',
-                    format='pc')
-            }
-
-            if (self$options$pcCol) {
-                freqs$addColumn(
-                    name='.total[pcCol]',
-                    title=.('Total'),
-                    type='number',
-                    format='pc')
-            }
-
-            if (self$options$pcTot) {
-                freqs$addColumn(
-                    name='.total[pcTot]',
-                    title=.('Total'),
-                    type='number',
-                    format='pc')
-            }
-
-            # populate the first column with levels of the row variable
-
-            values <- list()
-            for (i in seq_along(subNames))
-                values[[paste0('type', subNames[i])]] <- subTitles[i]
-
-            rows <- private$.grid(data=data, incRows=TRUE)
-
-            nextIsNewGroup <- TRUE
-
-            for (i in seq_len(nrow(rows))) {
-
-                for (name in colnames(rows)) {
-                    value <- as.character(rows[i, name])
-                    if (value == '.total')
-                        value <- .('Total')
-                    values[[name]] <- value
-                }
-
-                key <- paste0(rows[i,], collapse='`')
-                freqs$addRow(rowKey=key, values=values)
-
-                if (nextIsNewGroup) {
-                    freqs$addFormat(rowNo=i, 1, Cell.BEGIN_GROUP)
-                    nextIsNewGroup <- FALSE
-                }
-
-                if (as.character(rows[i, name]) == '.total') {
-                    freqs$addFormat(rowNo=i, 1, Cell.BEGIN_END_GROUP)
-                    nextIsNewGroup <- TRUE
-                    if (i > 1)
-                        freqs$addFormat(rowNo=i - 1, 1, Cell.END_GROUP)
-                }
-            }
 
             rows <- private$.grid(data=data, incRows=FALSE)
             values <- list()
@@ -232,10 +95,10 @@ contTablesClass <- R6::R6Class(
             gamma$getColumn('cil')$setSuperTitle(ciText)
             gamma$getColumn('ciu')$setSuperTitle(ciText)
 
+            private$.initFreqsTable()
             private$.initBarPlot()
         },
         .run=function() {
-
             rowVarName <- self$options$rows
             colVarName <- self$options$cols
             countsName <- self$countsName
@@ -569,8 +432,163 @@ contTablesClass <- R6::R6Class(
                 othRowNo <- othRowNo + 1
             }
         },
+        #### Init tables/plots functions ----
+        .initFreqsTable = function() {
+            freqs <- self$results$freqs
 
-        #### Plot functions ----
+            rowVarName <- self$options$rows
+            colVarName <- self$options$cols
+            layerNames <- self$options$layers
+            countsName <- self$options$counts
+
+            reversed <- rev(layerNames)
+            for (i in seq_along(reversed))
+                freqs$addColumn(name=reversed[[i]], type='text', combineBelow=TRUE)
+
+
+            data <- private$.cleanData()
+
+
+            # add the row column, containing the row variable
+            # fill in dots, if no row variable specified
+
+            if ( ! is.null(rowVarName))
+                title <- rowVarName
+            else
+                title <- '.'
+
+            freqs$addColumn(
+                name=title,
+                title=title,
+                type='text'
+            )
+
+            # add the column columns (from the column variable)
+            # fill in dots, if no column variable specified
+
+            if ( ! is.null(colVarName)) {
+                superTitle <- colVarName
+                levels <- base::levels(data[[colVarName]])
+            }
+            else {
+                superTitle <- '.'
+                levels <- c('.', '.')
+            }
+
+            subNames  <- c('[count]', '[expected]', '[pcRow]', '[pcCol]', '[pcTot]')
+            subTitles <- c(.('Observed'), .('Expected'), .('% within row'), .('% within column'), .('% of total'))
+            visible   <- c('(obs)', '(exp)', '(pcRow)', '(pcCol)', '(pcTot)')
+            types     <- c('integer', 'number', 'number', 'number', 'number')
+            formats   <- c('', '', 'pc', 'pc', 'pc')
+
+            # iterate over the sub rows
+
+            for (j in seq_along(subNames)) {
+                subName <- subNames[[j]]
+                if (subName == '[count]')
+                    v <- '(obs && (exp || pcRow || pcCol || pcTot))'
+                else
+                    v <- visible[j]
+
+                freqs$addColumn(
+                    name=paste0('type', subName),
+                    title='',
+                    type='text',
+                    visible=v)
+            }
+
+            for (i in seq_along(levels)) {
+                level <- levels[[i]]
+
+                for (j in seq_along(subNames)) {
+                    subName <- subNames[[j]]
+                    freqs$addColumn(
+                        name=paste0(i, subName),
+                        title=level,
+                        superTitle=superTitle,
+                        type=types[j],
+                        format=formats[j],
+                        visible=visible[j])
+                }
+            }
+
+            # add the Total column
+
+            if (self$options$obs) {
+                freqs$addColumn(
+                    name='.total[count]',
+                    title=.('Total'),
+                    type='integer')
+            }
+
+            if (self$options$exp) {
+                freqs$addColumn(
+                    name='.total[exp]',
+                    title=.('Total'),
+                    type='number')
+            }
+
+            if (self$options$pcRow) {
+                freqs$addColumn(
+                    name='.total[pcRow]',
+                    title=.('Total'),
+                    type='number',
+                    format='pc')
+            }
+
+            if (self$options$pcCol) {
+                freqs$addColumn(
+                    name='.total[pcCol]',
+                    title=.('Total'),
+                    type='number',
+                    format='pc')
+            }
+
+            if (self$options$pcTot) {
+                freqs$addColumn(
+                    name='.total[pcTot]',
+                    title=.('Total'),
+                    type='number',
+                    format='pc')
+            }
+
+            # populate the first column with levels of the row variable
+
+            values <- list()
+            for (i in seq_along(subNames))
+                values[[paste0('type', subNames[i])]] <- subTitles[i]
+
+            rows <- private$.grid(data=data, incRows=TRUE)
+
+            nextIsNewGroup <- TRUE
+
+            for (i in seq_len(nrow(rows))) {
+
+                for (name in colnames(rows)) {
+                    value <- as.character(rows[i, name])
+                    if (value == '.total')
+                        value <- .('Total')
+                    values[[name]] <- value
+                }
+
+                key <- paste0(rows[i,], collapse='`')
+                freqs$addRow(rowKey=key, values=values)
+
+                if (nextIsNewGroup) {
+                    freqs$addFormat(rowNo=i, 1, Cell.BEGIN_GROUP)
+                    nextIsNewGroup <- FALSE
+                }
+
+                if (as.character(rows[i, name]) == '.total') {
+                    freqs$addFormat(rowNo=i, 1, Cell.BEGIN_END_GROUP)
+                    nextIsNewGroup <- TRUE
+                    if (i > 1)
+                        freqs$addFormat(rowNo=i - 1, 1, Cell.END_GROUP)
+                }
+            }
+
+
+        },
         .initBarPlot = function() {
             image <- self$results$get('barplot')
 
@@ -583,6 +601,8 @@ contTablesClass <- R6::R6Class(
             else if (length(layerNames) >= 2)
                 image$setSize(width * 2, height * 2)
         },
+
+        #### Plot functions ----
         .barPlot = function(image, ggtheme, theme, ...) {
 
             if (! self$options$barplot)
