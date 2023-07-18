@@ -75,6 +75,16 @@ options:
       description:
           R: the data as a data frame
 
+    - name: dataFormat
+      title: Data format
+      type: List
+      options:
+        - name: wide
+          title: Wide
+        - name: long
+          title: Long
+      default: wide
+
     - name: rm
       title: Repeated Measures Factors
       type: Array

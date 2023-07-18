@@ -6,6 +6,7 @@ anovaRMOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
     inherit = jmvcore::Options,
     public = list(
         initialize = function(
+            dataFormat = "wide",
             rm = list(
                 list(label="RM Factor 1", levels=list(
                     "Level 1",
@@ -43,6 +44,13 @@ anovaRMOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 requiresData=TRUE,
                 ...)
 
+            private$..dataFormat <- jmvcore::OptionList$new(
+                "dataFormat",
+                dataFormat,
+                options=list(
+                    "wide",
+                    "long"),
+                default="wide")
             private$..rm <- jmvcore::OptionArray$new(
                 "rm",
                 rm,
@@ -236,6 +244,7 @@ anovaRMOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
                 groupSumm,
                 default=FALSE)
 
+            self$.addOption(private$..dataFormat)
             self$.addOption(private$..rm)
             self$.addOption(private$..rmCells)
             self$.addOption(private$..bs)
@@ -262,6 +271,7 @@ anovaRMOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
             self$.addOption(private$..groupSumm)
         }),
     active = list(
+        dataFormat = function() private$..dataFormat$value,
         rm = function() private$..rm$value,
         rmCells = function() private$..rmCells$value,
         bs = function() private$..bs$value,
@@ -287,6 +297,7 @@ anovaRMOptions <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
         emmPlotError = function() private$..emmPlotError$value,
         groupSumm = function() private$..groupSumm$value),
     private = list(
+        ..dataFormat = NA,
         ..rm = NA,
         ..rmCells = NA,
         ..bs = NA,
@@ -910,6 +921,7 @@ anovaRMBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' #
 #'}
 #' @param data the data as a data frame
+#' @param dataFormat .
 #' @param rm a list of lists, where each list describes the \code{label} (as a
 #'   string) and the \code{levels} (as vector of strings) of a particular
 #'   repeated measures factor
@@ -987,6 +999,7 @@ anovaRMBase <- if (requireNamespace("jmvcore", quietly=TRUE)) R6::R6Class(
 #' @export
 anovaRM <- function(
     data,
+    dataFormat = "wide",
     rm = list(
                 list(label="RM Factor 1", levels=list(
                     "Level 1",
@@ -1035,6 +1048,7 @@ anovaRM <- function(
     if (inherits(emMeans, "formula")) emMeans <- jmvcore::decomposeFormula(emMeans)
 
     options <- anovaRMOptions$new(
+        dataFormat = dataFormat,
         rm = rm,
         rmCells = rmCells,
         bs = bs,
