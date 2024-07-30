@@ -279,3 +279,25 @@ testthat::test_that('Extreme values provides note if number of cases is lower th
     testthat::expect_equal(eDf$value, c(3.1, 2.3, 1.1, NA, NA, 1.1, 2.3, 3.1, NA, NA))
 })
 
+
+params <- list(
+    list(weights = rep(1:2, 5), info = "Integer weights")
+)
+testthat::test_that("Weighted descriptives are calculated when weights are passed", {
+    for (param in params) {
+        # GIVEN a data frame with a numeric variable
+        df <- data.frame(x = rep(1:5, each=2))
+        # AND weights added to the data frame
+        attr(df, "jmv-weights") <- param$weights
+
+        # WHEN the descriptives are calculated
+        desc <- jmv::descriptives(data = df, vars = "x", desc="rows")
+
+        # THEN the statistics are calculated correctly
+        r <- desc$descriptivesT$asDF
+
+        testthat::expect_equal(r$n, sum(param$weights), info = param$info)
+    }
+})
+
+
