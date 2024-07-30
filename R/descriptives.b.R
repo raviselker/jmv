@@ -4,15 +4,24 @@
 descriptivesClass <- R6::R6Class(
     "descriptivesClass",
     inherit=descriptivesBase,
+    #### Active bindings ----
+    active = list(
+        weights = function() {
+            if (is.null(private$.weights))
+                private$.weights <- private$.computeWeights()
+
+            return(private$.weights)
+        }
+    ),
     private=list(
         #### Member variables ----
         colArgs = NA,
+        .weights = NULL,
         .levels = NULL,
         .splitByGrid = NULL,
 
         #### Init + run functions ----
         .init = function() {
-
             private$colArgs <- list(
                 name = c(
                     "n", "missing", "mean", "se", "ciLower", "ciUpper", "median",
@@ -103,6 +112,157 @@ descriptivesClass <- R6::R6Class(
             }
 
             return(list(desc=desc, freq=freq, extreme=extreme))
+        },
+        .computeDesc = function(column) {
+            stats <- list()
+
+            total <- length(column)
+            column <- jmvcore::naOmit(column)
+            n <- length(column)
+            stats[['n']] <- n
+            stats[['missing']] <- total - n
+
+            if (jmvcore::canBeNumeric(column) && n > 0) {
+                stats[['mean']] <- mean(column)
+                stats[['median']] <- median(column)
+                stats[['mode']] <- as.numeric(
+                    names(table(column)[ table(column) == max(table(column)) ])
+                )
+                stats[['sum']] <- sum(column)
+                stats[['sd']] <- sd(column)
+                stats[['variance']] <- var(column)
+                stats[['range']] <- max(column)-min(column)
+                stats[['min']] <- min(column)
+                stats[['max']] <- max(column)
+                stats[['se']] <- sqrt(var(column) / length(column))
+
+                # Calculate CI of the mean based on a t distribution
+                tCriticalValue <- 1 - ((1 - self$options$ciWidth/100) / 2)
+                ciDiff <- qt(tCriticalValue, df=stats[['n']] - 1) * stats[['se']]
+                stats[['ciLower']] <- stats[['mean']] - ciDiff
+                stats[['ciUpper']] <- stats[['mean']] + ciDiff
+
+                stats[['iqr']] <- diff(as.numeric(quantile(column, c(.25,.75))))
+
+                skew <- private$.skewness(column)
+                kurt <- private$.kurtosis(column)
+                norm <- jmvcore::tryNaN(shapiro.test(column)$p.value)
+                normw <- jmvcore::tryNaN(shapiro.test(column)$statistic)
+                stats[['skew']] <- skew$skew
+                stats[['seSkew']] <- skew$seSkew
+                stats[['kurt']] <- kurt$kurt
+                stats[['seKurt']] <- kurt$seKurt
+                stats[['sww']] <- normw
+                stats[['sw']] <- norm
+
+                if ( self$options$pcEqGr ) {
+                    pcNEqGr <- self$options$pcNEqGr
+
+                    pcEq <- (1:pcNEqGr / pcNEqGr)[-pcNEqGr]
+                    quants <- as.numeric(quantile(column, pcEq))
+
+                    for (i in 1:(pcNEqGr-1))
+                        stats[[paste0('quant', i)]] <- quants[i]
+                }
+
+                if ( self$options$pc ) {
+                    pcValues <- private$.getPcValues()
+                    npcValues <- length(pcValues)
+
+                    if ( npcValues > 0 ) {
+                        quants <- as.numeric(quantile(column, pcValues))
+                        for (i in 1:npcValues)
+                            stats[[paste0('perc', i)]] <- quants[i]
+                    }
+                }
+            } else {
+                # Because these descriptives can only be calculated for numeric
+                # values, the values are set to an empty string for non-numeric
+                # columns. If the column is numeric, but has no values, the
+                # values are set to NaN to indicate that the value could not
+                # be calculated.
+                val <- ifelse(jmvcore::canBeNumeric(column), NaN, "")
+
+                l <- list(
+                    mean=val, median=val, mode=val, sum=val, sd=val,
+                    variance=val, range=val, min=val, max=val, se=val,
+                    ciLower=val, ciUpper=val, skew=val, seSkew=val, kurt=val,
+                    seKurt=val, sww=val, sw=val
+                )
+
+                if ( self$options$pcEqGr ) {
+                    pcNEqGr <- self$options$pcNEqGr
+                    for (i in 1:(pcNEqGr-1))
+                        l[[paste0('quant', i)]] <- val
+                }
+
+                if ( self$options$pc ) {
+                    pcValues <- private$.getPcValues()
+                    npcValues <- length(pcValues)
+                    if ( npcValues > 0 ) {
+                        for (i in 1:npcValues)
+                            l[[paste0('perc', i)]] <- val
+                    }
+                }
+
+                stats <- append(stats, l)
+            }
+
+            return(stats)
+        },
+        .computeDescWeighted = function(column, weights) {
+            stats <- list()
+
+            stats[['n']] <- sum(weights)
+            stats[['missing']] <- ""
+            stats[['mean']] <- matrixStats::weightedMean(column, weights)
+            stats[['median']] <- matrixStats::weightedMedian(column, weights)
+            stats[['mode']] <- ""
+            stats[['sum']] <- sum(column * weights)
+            stats[['sd']] <- matrixStats::weightedSd(data, weights)
+            stats[['variance']] <- matrixStats::weightedVar(data, weights)
+            stats[['range']] <- max(column)-min(column)
+            stats[['min']] <- min(column)
+            stats[['max']] <- max(column)
+            stats[['se']] <- ""
+            stats[['ciLower']] <- ""
+            stats[['ciUpper']] <- ""
+
+            stats[['iqr']] <- ""
+            stats[['skew']] <- ""
+            stats[['seSkew']] <- ""
+            stats[['kurt']] <- ""
+            stats[['seKurt']] <- ""
+            stats[['sww']] <- ""
+            stats[['sw']] <- ""
+
+            if ( self$options$pcEqGr ) {
+                pcNEqGr <- self$options$pcNEqGr
+                for (i in 1:(pcNEqGr-1))
+                    l[[paste0('quant', i)]] <- ""
+            }
+
+            if ( self$options$pc ) {
+                pcValues <- private$.getPcValues()
+                npcValues <- length(pcValues)
+                if ( npcValues > 0 ) {
+                    for (i in 1:npcValues)
+                        l[[paste0('perc', i)]] <- ""
+                }
+            }
+        },
+        .computeExtreme = function(df) {
+            extremeN = self$options$extremeN
+
+            if (! jmvcore::canBeNumeric(df$values))
+                return(NULL)
+
+            df$values = jmvcore::toNumeric(df$values)
+
+            lowest = head(df[order(df$values),], extremeN)
+            highest <- head(df[order(-df$values),], extremeN)
+
+            return(list(highest=highest, lowest=lowest))
         },
 
         #### Init tables/plots functions ----
@@ -1441,131 +1601,6 @@ descriptivesClass <- R6::R6Class(
         },
         .skipOption = function(visible) {
             return(! self$options[[ gsub("[()]", "", visible) ]])
-        },
-        .computeDesc = function(column) {
-            stats <- list()
-
-            total <- length(column)
-            column <- jmvcore::naOmit(column)
-            n <- length(column)
-            stats[['n']] <- n
-            stats[['missing']] <- total - n
-
-            if (jmvcore::canBeNumeric(column) && n > 0) {
-                stats[['mean']] <- mean(column)
-                stats[['median']] <- median(column)
-                stats[['mode']] <- as.numeric(
-                    names(table(column)[ table(column) == max(table(column)) ])
-                )
-                stats[['sum']] <- sum(column)
-                stats[['sd']] <- sd(column)
-                stats[['variance']] <- var(column)
-                stats[['range']] <- max(column)-min(column)
-                stats[['min']] <- min(column)
-                stats[['max']] <- max(column)
-                stats[['se']] <- sqrt(var(column)/length(column))
-
-                # Calculate CI of the mean based on a t distribution
-                tCriticalValue <- 1 - ((1 - self$options$ciWidth/100) / 2)
-                ciDiff <- qt(tCriticalValue, df=stats[['n']] - 1) * stats[['se']]
-                stats[['ciLower']] <- stats[['mean']] - ciDiff
-                stats[['ciUpper']] <- stats[['mean']] + ciDiff
-
-                stats[['iqr']] <- diff(as.numeric(quantile(column, c(.25,.75))))
-
-                deviation <- column-mean(column)
-                skew <- private$.skewness(column)
-                kurt <- private$.kurtosis(column)
-                norm <- jmvcore::tryNaN(shapiro.test(column)$p.value)
-                normw <- jmvcore::tryNaN(shapiro.test(column)$statistic)
-                stats[['skew']] <- skew$skew
-                stats[['seSkew']] <- skew$seSkew
-                stats[['kurt']] <- kurt$kurt
-                stats[['seKurt']] <- kurt$seKurt
-                stats[['sww']] <- normw
-                stats[['sw']] <- norm
-
-                if ( self$options$pcEqGr ) {
-                    pcNEqGr <- self$options$pcNEqGr
-
-                    pcEq <- (1:pcNEqGr / pcNEqGr)[-pcNEqGr]
-                    quants <- as.numeric(quantile(column, pcEq))
-
-                    for (i in 1:(pcNEqGr-1))
-                        stats[[paste0('quant', i)]] <- quants[i]
-                }
-
-                if ( self$options$pc ) {
-                    pcValues <- private$.getPcValues()
-                    npcValues <- length(pcValues)
-
-                    if ( npcValues > 0 ) {
-                        quants <- as.numeric(quantile(column, pcValues))
-                        for (i in 1:npcValues)
-                            stats[[paste0('perc', i)]] <- quants[i]
-                    }
-                }
-            } else if (jmvcore::canBeNumeric(column)) {
-                l <- list(
-                    mean=NaN, median=NaN, mode=NaN, sum=NaN, sd=NaN,
-                    variance=NaN, range=NaN, min=NaN, max=NaN, se=NaN,
-                    ciLower=NaN, ciUpper=NaN, skew=NaN, seSkew=NaN, kurt=NaN,
-                    seKurt=NaN, sww=NaN, sw=NaN
-                )
-
-                if ( self$options$pcEqGr ) {
-                    pcNEqGr <- self$options$pcNEqGr
-                    for (i in 1:(pcNEqGr-1))
-                        l[[paste0('quant', i)]] <- NaN
-                }
-
-                if ( self$options$pc ) {
-                    pcValues <- private$.getPcValues()
-                    npcValues <- length(pcValues)
-                    if ( npcValues > 0 ) {
-                        for (i in 1:npcValues)
-                            l[[paste0('perc', i)]] <- NaN
-                    }
-                }
-
-                stats <- append(stats, l)
-            } else {
-                l <- list(
-                    mean='', median='', mode='', sum='', sd='', variance='',
-                    range='', min='', max='', se='', ciLower='', ciUpper='',
-                    skew='', seSkew='', kurt='', seKurt='', sww='', sw=''
-                )
-
-                if ( self$options$pcEqGr ) {
-                    pcNEqGr <- self$options$pcNEqGr
-                    for (i in 1:(pcNEqGr-1))
-                        l[[paste0('quant', i)]] <- ''
-                }
-
-                if ( self$options$pc ) {
-                    pcValues <- private$.getPcValues()
-                    npcValues <- length(pcValues)
-                    if ( npcValues > 0 ) {
-                        for (i in 1:npcValues)
-                            l[[paste0('perc', i)]] <- ''
-                    }
-                }
-                stats <- append(stats, l)
-            }
-            return(stats)
-        },
-        .computeExtreme = function(df) {
-            extremeN = self$options$extremeN
-
-            if (! jmvcore::canBeNumeric(df$values))
-                return(NULL)
-
-            df$values = jmvcore::toNumeric(df$values)
-
-            lowest = head(df[order(df$values),], extremeN)
-            highest <- head(df[order(-df$values),], extremeN)
-
-            return(list(highest=highest, lowest=lowest))
         },
         .plotSize = function(levels, plot) {
             nLevels <- as.numeric(sapply(levels, length))
