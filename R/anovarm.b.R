@@ -16,13 +16,40 @@ anovaRMClass <- R6::R6Class(
                 private$.bsTerms <- private$.getBsTerms()
 
             return(private$.bsTerms)
+        },
+        dataProcessed = function() {
+            if (is.null(private$.dataProcessed))
+                private$.dataProcessed <- private$.wideToLong()
+
+            return(private$.dataProcessed)
+        },
+        model = function() {
+            if (is.null(private$.model))
+                private$.model <- private$.computeModel()
+
+            return(private$.model)
+        },
+        sphericity = function() {
+            if (is.null(private$.sphericity)) {
+                suppressWarnings({
+                    summaryResult <- summary(self$model)
+                })
+                private$.sphericity <- list(
+                    corrections = summaryResult$pval.adjustments,
+                    tests = summaryResult$sphericity.tests
+                )
+            }
+
+            return(private$.sphericity)
         }
     ),
     private = list(
         #### Member variables ----
         .rmTerms = NULL,
         .bsTerms = NULL,
+        .dataProcessed = NULL,
         .model = NULL,
+        .sphericity = NULL,
         .postHocRows = NULL,
         emMeans = list(),
 
@@ -48,40 +75,45 @@ anovaRMClass <- R6::R6Class(
 
             ready <- sum(dataSelected) == length(self$options$rmCells) && length(self$rmTerms) > 0
 
-            if (ready) {
+            if (! ready)
+                return()
 
-                private$.dataCheck()
-                data <- private$.wideToLong()
-                modelFormula <- private$.modelFormula()
+            private$.dataCheck()
 
-                suppressMessages({
-                    suppressWarnings({
-                        result <- try(
-                            afex::aov_car(
-                                modelFormula,
-                                data,
-                                type=self$options$ss,
-                                factorize = FALSE
-                            ),
-                            silent=TRUE
-                        )
-                    }) # suppressWarnings
-                }) # suppressMessages
+            private$.populateEffectsTables()
+            private$.populateSpericityTable()
+            private$.populateLeveneTable()
+            private$.prepareQQPlot()
 
-                if (isError(result))
-                    jmvcore::reject(extractErrorMessage(result), code='error')
+            private$.populatePostHocTables()
 
-                private$.populateEffectsTables(result)
-                private$.populateSpericityTable(result)
-                private$.populateLeveneTable()
-                private$.prepareQQPlot(result)
+            private$.prepareEmmPlots()
+            private$.populateEmmTables()
+            private$.populateGroupSummaryTable()
+        },
 
-                private$.populatePostHocTables(result)
+        #### Compute results ----
+        .computeModel = function() {
+            modelFormula <- private$.modelFormula()
 
-                private$.prepareEmmPlots(result, data)
-                private$.populateEmmTables()
-                private$.populateGroupSummaryTable()
-            }
+            suppressMessages({
+                suppressWarnings({
+                    model <- try(
+                        afex::aov_car(
+                            modelFormula,
+                            self$dataProcessed,
+                            type=self$options$ss,
+                            factorize = FALSE
+                        ),
+                        silent=FALSE
+                    )
+                }) # suppressWarnings
+            }) # suppressMessages
+
+            if (isError(model))
+                jmvcore::reject(extractErrorMessage(model), code='error')
+
+            return(model)
         },
 
         #### Init tables/plots functions ----
@@ -365,22 +397,22 @@ anovaRMClass <- R6::R6Class(
         },
 
         #### Populate tables functions ----
-        .populateEffectsTables=function(result) {
+        .populateEffectsTables=function() {
 
-            rmTable <- self$results$get('rmTable')
-            bsTable <- self$results$get('bsTable')
+            rmTable <- self$results$rmTable
+            bsTable <- self$results$bsTable
 
             suppressWarnings({
-                summaryResult <- summary(result)
+                summaryResult <- summary(self$model)
             })
             model <- summaryResult$univariate.tests
-            epsilon <- summaryResult$pval.adjustments
-            ges <- result$anova_table
+            corrections <- self$sphericity$corrections
+            ges <- self$model$anova_table
 
             rmRows <- rmTable$rowKeys
             bsRows <- bsTable$rowKeys
             modelRows <- jmvcore::decomposeTerms(as.list(rownames(model)))
-            epsilonRows <- jmvcore::decomposeTerms(as.list(rownames(epsilon)))
+            correctionsRows <- jmvcore::decomposeTerms(as.list(rownames(corrections)))
             gesRows <- jmvcore::decomposeTerms(as.list(rownames(ges)))
 
             SSt <- private$.getSSt(model)
@@ -401,15 +433,15 @@ anovaRMClass <- R6::R6Class(
                     row[['p[none]']] <- model[index,'Pr(>F)']
 
                     # Add sphericity corrected values
-                    indexEps <- which(sapply(epsilonRows, function(x) setequal(toB64(rmRows[[i]]), x)))
+                    indexEps <- which(sapply(correctionsRows, function(x) setequal(toB64(rmRows[[i]]), x)))
                     dfRes <- model[index,'den Df']
 
                     if (length(indexEps) == 0) {
                         GG <- 1
                         HF <- 1
                     } else {
-                        GG <- if (is.na(epsilon[indexEps,'GG eps'])) 1 else epsilon[indexEps,'GG eps']
-                        HF <- if (is.na(epsilon[indexEps,'HF eps']) || epsilon[indexEps,'HF eps'] > 1) 1 else epsilon[indexEps,'HF eps']
+                        GG <- if (is.na(corrections[indexEps,'GG eps'])) 1 else corrections[indexEps,'GG eps']
+                        HF <- if (is.na(corrections[indexEps,'HF eps']) || corrections[indexEps,'HF eps'] > 1) 1 else corrections[indexEps,'HF eps']
                     }
 
                     row[['df[GG]']] <- row[['df[none]']] * GG
@@ -456,15 +488,15 @@ anovaRMClass <- R6::R6Class(
                     row[['omega[none]']] <- row[['omega[GG]']] <- row[['omega[HF]']] <- ''
 
                     # Add sphericity corrected values
-                    indexEps <- which(sapply(epsilonRows, function(x) setequal(toB64(term), x)))
+                    indexEps <- which(sapply(correctionsRows, function(x) setequal(toB64(term), x)))
                     dfRes <- model[index,'den Df']
 
                     if (length(indexEps) == 0) {
                         GG <- 1
                         HF <- 1
                     } else {
-                        GG <- if (is.na(epsilon[indexEps,'GG eps'])) 1 else epsilon[indexEps,'GG eps']
-                        HF <- if (is.na(epsilon[indexEps,'HF eps']) || epsilon[indexEps,'HF eps'] > 1) 1 else epsilon[indexEps,'HF eps']
+                        GG <- if (is.na(corrections[indexEps,'GG eps'])) 1 else corrections[indexEps,'GG eps']
+                        HF <- if (is.na(corrections[indexEps,'HF eps']) || corrections[indexEps,'HF eps'] > 1) 1 else corrections[indexEps,'HF eps']
                     }
 
                     row[['df[GG]']] <- row[['df[none]']] * GG
@@ -520,49 +552,40 @@ anovaRMClass <- R6::R6Class(
                 }
             }
         },
-        .populateSpericityTable=function(result) {
-
+        .populateSpericityTable = function() {
             spherTable <- self$results$assump$spherTable
 
-            summaryResult <- suppressWarnings({summary(result)})
-            epsilon <- summaryResult$pval.adjustments
-            mauchly <- summaryResult$sphericity.tests
+            corrections <- self$sphericity$corrections
+            mauchly <- self$sphericity$tests
 
             nLevels <- sapply(self$options$rm, function(x) return(length(x$levels)))
             resultRows <- decomposeTerms(rownames(mauchly))
 
             if (any(nLevels > 2) && length(resultRows) > 0) {
-
                 for (term in self$rmTerms) {
 
                     index <- which(sapply(as.list(resultRows), function(x) setequal(x, toB64(term))))
 
                     if (length(index) == 0) {
-
                         spherTable$setRow(rowKey=term, values=list('mauch'=1, 'p'=NaN, 'gg'=1, 'hf'=1))
                         if (length(spherTable$getRow(rowKey=term)$name$footnotes) == 0)
                             spherTable$addFootnote(rowKey=term, 'p', .('The repeated measures has only two levels. The assumption of sphericity is always met when the repeated measures has only two levels.'))
-
                     } else {
-
                         row <- list()
                         row[['mauch']] <- mauchly[index,'Test statistic']
                         row[['p']] <- mauchly[index,'p-value']
-                        row[['gg']] <- epsilon[index, 'GG eps']
-                        row[['hf']] <- if (epsilon[index, 'HF eps'] > 1) 1 else epsilon[index, 'HF eps']
+                        row[['gg']] <- corrections[index, 'GG eps']
+                        row[['hf']] <- if (corrections[index, 'HF eps'] > 1) 1 else corrections[index, 'HF eps']
 
                         spherTable$setRow(rowKey=term, values=row)
                     }
                 }
             } else {
-
                 for (term in self$rmTerms) {
-
                     if (any(nLevels > 2)) {
                         spherTable$setRow(rowKey=term, values=list('mauch'=NaN, 'p'=NaN, 'gg'=NaN, 'hf'=NaN))
                         if (length(spherTable$getRow(rowKey=term)$name$footnotes) == 0)
                             spherTable$addFootnote(rowKey=term, 'name', .('Singularity error. Sphericity tests are not available'))
-
                     } else {
                         spherTable$setRow(rowKey=term, values=list('mauch'=1, 'p'=NaN, 'gg'=1, 'hf'=1))
                         if (length(spherTable$getRow(rowKey=term)$name$footnotes) == 0)
@@ -576,7 +599,7 @@ anovaRMClass <- R6::R6Class(
             if (length(self$options$rmCells) == 0)
                 return()
 
-            leveneTable <- self$results$get('assump')$get('leveneTable')
+            leveneTable <- self$results$assump$leveneTable
 
             rmVars <- sapply(self$options$rmCells, function(x) return(x$measure))
             covVars <- self$options$cov
@@ -618,8 +641,7 @@ anovaRMClass <- R6::R6Class(
                 leveneTable$setRow(rowKey=var, values=row)
             }
         },
-        .populatePostHocTables=function (result) {
-
+        .populatePostHocTables = function() {
             terms <- self$options$postHoc
 
             if (length(terms) == 0)
@@ -643,7 +665,7 @@ anovaRMClass <- R6::R6Class(
                     table$setStatus('running')
 
                     emmeans::emm_options(sep = ",", parens = "a^")
-                    referenceGrid <- emmeans::emmeans(result, formula, model="multivariate")
+                    referenceGrid <- emmeans::emmeans(self$model, formula, model="multivariate")
                     none <- summary(pairs(referenceGrid, adjust='none'))
                     tukey <- summary(pairs(referenceGrid, adjust='tukey'))
                     scheffe <- summary(pairs(referenceGrid, adjust='scheffe'))
@@ -753,12 +775,12 @@ anovaRMClass <- R6::R6Class(
         },
 
         #### Plot functions ----
-        .prepareQQPlot = function(model) {
+        .prepareQQPlot = function() {
             image <- self$results$assump$qq
 
             suppressMessages({
                 suppressWarnings({
-                    residuals <- scale(residuals(model))
+                    residuals <- scale(residuals(self$model))
                 })
             })
 
@@ -780,7 +802,7 @@ anovaRMClass <- R6::R6Class(
 
             return(p)
         },
-        .prepareEmmPlots = function(model, data) {
+        .prepareEmmPlots = function() {
 
             emMeans <- self$options$emMeans
 
@@ -807,7 +829,7 @@ anovaRMClass <- R6::R6Class(
                         emmeans::emm_options(sep = ",", parens = "a^")
 
                         mm <- try(
-                            emmeans::emmeans(model, formula, options=list(level=self$options$ciWidthEmm / 100),
+                            emmeans::emmeans(self$model, formula, options=list(level=self$options$ciWidthEmm / 100),
                                              weights = weights, model = "multivariate"),
                             silent = TRUE
                         )
@@ -829,7 +851,7 @@ anovaRMClass <- R6::R6Class(
                     labels <- list('x'=term[1], 'y'=self$options$depLabel, 'lines'=term[2], 'plots'=term[3])
                     labels <- lapply(labels, function(x) if (is.na(x)) NULL else x)
 
-                    dataNew <- lapply(data, function(x) {
+                    dataNew <- lapply(self$dataProcessed, function(x) {
                         if (is.factor(x))
                             levels(x) <- jmvcore::fromB64(levels(x))
                         return(x)
