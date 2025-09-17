@@ -1,10 +1,9 @@
-
 #' @importFrom jmvcore .
 anovaClass <- R6::R6Class(
     "anovaClass",
     inherit = ancovaClass,
     private = list(
-        .init=function() {
+        .init = function() {
             super$.init()
             self$results$setTitle(.('ANOVA'))
             self$results$main$setTitle(self$options$eval('`ANOVA - ${dep}`'))
@@ -12,10 +11,10 @@ anovaClass <- R6::R6Class(
         }
     ),
     public = list(
-        asSource=function() {
+        asSource = function() {
             paste0(private$.package, '::', 'ANOVA', '(', private$.asArgs(), ')')
         },
-        initialize=function(...) {
+        initialize = function(...) {
             super$initialize(...)
             private$.name <- 'anova'
         }

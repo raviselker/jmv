@@ -1,4 +1,3 @@
-
 #' @importFrom jmvcore .
 logRegMultiClass <- R6::R6Class(
     "logRegMultiClass",
@@ -6,38 +5,32 @@ logRegMultiClass <- R6::R6Class(
     #### Active bindings ----
     active = list(
         dataProcessed = function() {
-            if (is.null(private$.dataProcessed))
-                private$.dataProcessed <- private$.cleanData()
+            if (is.null(private$.dataProcessed)) private$.dataProcessed <- private$.cleanData()
 
             return(private$.dataProcessed)
         },
         weights = function() {
-            if (is.null(private$.weights))
-                private$.weights <- private$.computeWeights()
+            if (is.null(private$.weights)) private$.weights <- private$.computeWeights()
 
             return(private$.weights)
         },
         formulas = function() {
-            if (is.null(private$.formulas))
-                private$.formulas <- private$.getFormulas()
+            if (is.null(private$.formulas)) private$.formulas <- private$.getFormulas()
 
             return(private$.formulas)
         },
         models = function() {
-            if (is.null(private$.models))
-                private$.models <- private$.computeModels()
+            if (is.null(private$.models)) private$.models <- private$.computeModels()
 
             return(private$.models)
         },
         nModels = function() {
-            if (is.null(private$.nModels))
-                private$.nModels <- length(self$options$blocks)
+            if (is.null(private$.nModels)) private$.nModels <- length(self$options$blocks)
 
             return(private$.nModels)
         },
         nullModel = function() {
-            if (is.null(private$.nullModel))
-                private$.nullModel <- private$.computeNullModel()
+            if (is.null(private$.nullModel)) private$.nullModel <- private$.computeNullModel()
 
             return(private$.nullModel)
         },
@@ -45,7 +38,7 @@ logRegMultiClass <- R6::R6Class(
             if (is.null(private$.lrtModelComparison) && self$nModels > 1) {
                 private$.lrtModelComparison <- do.call(
                     stats::anova,
-                    c(self$models, test="Chisq")
+                    c(self$models, test = "Chisq")
                 )
             }
 
@@ -58,44 +51,38 @@ logRegMultiClass <- R6::R6Class(
             return(private$.lrtModelTerms)
         },
         deviance = function() {
-            if (is.null(private$.deviance))
-                private$.deviance <- private$.computeDeviance()
+            if (is.null(private$.deviance)) private$.deviance <- private$.computeDeviance()
 
             return(private$.deviance)
         },
         AIC = function() {
-            if (is.null(private$.AIC))
-                private$.AIC <- private$.computeAIC()
+            if (is.null(private$.AIC)) private$.AIC <- private$.computeAIC()
 
             return(private$.AIC)
         },
         BIC = function() {
-            if (is.null(private$.BIC))
-                private$.BIC <- private$.computeBIC()
+            if (is.null(private$.BIC)) private$.BIC <- private$.computeBIC()
 
             return(private$.BIC)
         },
         pseudoR2 = function() {
-            if (is.null(private$.pseudoR2))
-                private$.pseudoR2 <- private$.computePseudoR2()
+            if (is.null(private$.pseudoR2)) private$.pseudoR2 <- private$.computePseudoR2()
 
             return(private$.pseudoR2)
         },
         modelTest = function() {
-            if (is.null(private$.modelTest))
-                private$.modelTest <- private$.computeModelTest()
+            if (is.null(private$.modelTest)) private$.modelTest <- private$.computeModelTest()
 
             return(private$.modelTest)
         },
         CICoefEst = function() {
-            if (is.null(private$.CICoefEst))
-                private$.CICoefEst <- private$.computeCICoefEst()
+            if (is.null(private$.CICoefEst)) private$.CICoefEst <- private$.computeCICoefEst()
 
             return(private$.CICoefEst)
         },
         CICoefEstOR = function() {
             if (is.null(private$.CICoefEstOR))
-                private$.CICoefEstOR <- private$.computeCICoefEst(type="OR")
+                private$.CICoefEstOR <- private$.computeCICoefEst(type = "OR")
 
             return(private$.CICoefEstOR)
         },
@@ -103,7 +90,9 @@ logRegMultiClass <- R6::R6Class(
             if (is.null(private$.refLevels)) {
                 factors <- c(self$options$dep, self$options$factors)
                 refLevels <- getReferenceLevels(
-                    self$data, factors, self$options$refLevels
+                    self$data,
+                    factors,
+                    self$options$refLevels
                 )
                 private$.refLevels <- refLevels$refLevels
 
@@ -139,7 +128,6 @@ logRegMultiClass <- R6::R6Class(
 
         #### Init + run functions ----
         .init = function() {
-
             private$.modelTerms()
 
             private$.initModelFitTable()
@@ -150,13 +138,12 @@ logRegMultiClass <- R6::R6Class(
 
             private$.initEmm()
             private$.initEmmTable()
-
         },
         .run = function() {
             if (
                 is.null(self$options$dep) ||
-                length(self$options$blocks) < 1 ||
-                length(self$options$blocks[[1]]) == 0
+                    length(self$options$blocks) < 1 ||
+                    length(self$options$blocks[[1]]) == 0
             ) {
                 return()
             }
@@ -177,17 +164,20 @@ logRegMultiClass <- R6::R6Class(
             data <- self$dataProcessed
             formulas <- self$formulas
 
-            if (is.numeric(modelNo))
-                formulas <- formulas[modelNo]
+            if (is.numeric(modelNo)) formulas <- formulas[modelNo]
 
             globalContr <- options('contrasts')$contrasts
             options('contrasts' = c('contr.treatment', 'contr.poly'))
-            on.exit(options('contrasts', substitute(globalContr)), add=TRUE)
+            on.exit(options('contrasts', substitute(globalContr)), add = TRUE)
 
             models <- list()
             for (i in seq_along(formulas)) {
                 models[[i]] <- nnet::multinom(
-                    formulas[[i]], data=data, model=TRUE, trace=FALSE, weights=self$weights
+                    formulas[[i]],
+                    data = data,
+                    model = TRUE,
+                    trace = FALSE,
+                    weights = self$weights
                 )
                 models[[i]]$call$formula <- formulas[[i]]
             }
@@ -197,15 +187,18 @@ logRegMultiClass <- R6::R6Class(
         .computeNullModel = function() {
             nullFormula <- as.formula(paste0(jmvcore::toB64(self$options$dep), '~ 1'))
             nullModel <- nnet::multinom(
-                nullFormula, data=self$dataProcessed, model=TRUE, trace=FALSE, weights=self$weights
+                nullFormula,
+                data = self$dataProcessed,
+                model = TRUE,
+                trace = FALSE,
+                weights = self$weights
             )
-            return(list(dev=nullModel$deviance, df=nullModel$edf))
+            return(list(dev = nullModel$deviance, df = nullModel$edf))
         },
         .computeWeights = function() {
             global_weights <- attr(self$data, "jmv-weights")
 
-            if (is.null(global_weights))
-                return()
+            if (is.null(global_weights)) return()
 
             weights <- self$dataProcessed[[".WEIGHTS"]]
 
@@ -222,31 +215,28 @@ logRegMultiClass <- R6::R6Class(
             for (i in seq_len(self$nModels)) {
                 lrtModelTerms[[i]] <- car::Anova(
                     self$models[[i]],
-                    test="LR",
-                    type=3,
-                    singular.ok=TRUE
+                    test = "LR",
+                    type = 3,
+                    singular.ok = TRUE
                 )
             }
             return(lrtModelTerms)
         },
         .computeDeviance = function() {
             dev <- list()
-            for (i in seq_len(self$nModels))
-                dev[[i]] <- self$models[[i]]$deviance
+            for (i in seq_len(self$nModels)) dev[[i]] <- self$models[[i]]$deviance
 
             return(dev)
         },
         .computeAIC = function() {
             AIC <- list()
-            for (i in seq_len(self$nModels))
-                AIC[[i]] <- stats::AIC(self$models[[i]])
+            for (i in seq_len(self$nModels)) AIC[[i]] <- stats::AIC(self$models[[i]])
 
             return(AIC)
         },
         .computeBIC = function() {
             BIC <- list()
-            for (i in seq_len(self$nModels))
-                BIC[[i]] <- stats::BIC(self$models[[i]])
+            for (i in seq_len(self$nModels)) BIC[[i]] <- stats::BIC(self$models[[i]])
 
             return(BIC)
         },
@@ -260,7 +250,7 @@ logRegMultiClass <- R6::R6Class(
                 r2cs <- 1 - exp(-(self$nullModel$dev - dev) / n)
                 r2n <- r2cs / (1 - exp(-self$nullModel$dev / n))
 
-                pR2[[i]] <- list(r2mf=r2mf, r2cs=r2cs, r2n=r2n)
+                pR2[[i]] <- list(r2mf = r2mf, r2cs = r2cs, r2n = r2n)
             }
             return(pR2)
         },
@@ -270,21 +260,18 @@ logRegMultiClass <- R6::R6Class(
                 chi <- self$nullModel$dev - self$models[[i]]$deviance
                 df <- abs(self$nullModel$df - self$models[[i]]$edf)
                 p <- 1 - pchisq(chi, df)
-                modelTest[[i]] <- list(chi=chi, df=df, p=p)
+                modelTest[[i]] <- list(chi = chi, df = df, p = p)
             }
             return(modelTest)
         },
-        .computeCICoefEst = function(type="LOR") {
-            if (type == "OR")
-                level <- self$options$ciWidthOR / 100
-            else
+        .computeCICoefEst = function(type = "LOR") {
+            if (type == "OR") level <- self$options$ciWidthOR / 100 else
                 level <- self$options$ciWidth / 100
 
             ci <- list()
             for (i in seq_len(self$nModels)) {
-                ci[[i]] <- confint(self$models[[i]], level=level)
-                if (type == "OR")
-                    ci[[i]] <- exp(ci[[i]])
+                ci[[i]] <- confint(self$models[[i]], level = level)
+                if (type == "OR") ci[[i]] <- exp(ci[[i]])
             }
             return(ci)
         },
@@ -294,12 +281,13 @@ logRegMultiClass <- R6::R6Class(
             table <- self$results$modelFit
 
             for (i in seq_along(self$options$blocks))
-                table$addRow(rowKey=i, values=list(model = i))
+                table$addRow(rowKey = i, values = list(model = i))
 
             table$setNote(
                 "n",
                 jmvcore::format(
-                    .("Models estimated using sample size of N={n}"), n="..."
+                    .("Models estimated using sample size of N={n}"),
+                    n = "..."
                 )
             )
         },
@@ -312,16 +300,16 @@ logRegMultiClass <- R6::R6Class(
                 return()
             }
 
-            for (i in 1:(length(terms)-1))
-                table$addRow(rowKey=i, values=list(model1 = i, model2 = as.integer(i+1)))
+            for (i in 1:(length(terms) - 1))
+                table$addRow(rowKey = i, values = list(model1 = i, model2 = as.integer(i + 1)))
         },
         .initModelSpec = function() {
             groups <- self$results$models
 
             for (i in seq_along(self$options$blocks)) {
-                groups$addItem(key=i)
-                group <- groups$get(key=i)
-                group$setTitle(paste("Model",i))
+                groups$addItem(key = i)
+                group <- groups$get(key = i)
+                group$setTitle(paste("Model", i))
             }
         },
         .initLrtTables = function() {
@@ -329,13 +317,13 @@ logRegMultiClass <- R6::R6Class(
             termsAll <- private$terms
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$lrt
+                table <- groups$get(key = i)$lrt
                 terms <- termsAll[[i]]
 
                 for (j in seq_along(terms)) {
                     table$addRow(
-                        rowKey=paste0(terms[[j]]),
-                        values=list(term = jmvcore::stringifyTerm(terms[j]))
+                        rowKey = paste0(terms[[j]]),
+                        values = list(term = jmvcore::stringifyTerm(terms[j]))
                     )
                 }
             }
@@ -349,7 +337,7 @@ logRegMultiClass <- R6::R6Class(
 
             dep <- self$options$dep
 
-            if ( ! is.null(dep) ) {
+            if (!is.null(dep)) {
                 refLevels <- self$refLevels
                 refVars <- sapply(refLevels, function(x) x$var)
                 depLevels <- levels(self$data[[dep]])
@@ -361,11 +349,11 @@ logRegMultiClass <- R6::R6Class(
             }
 
             ciWidthTitleString <- .('{ciWidth}% Confidence Interval')
-            ciWidthTitle <- jmvcore::format(ciWidthTitleString, ciWidth=self$options$ciWidth)
-            ciWidthORTitle <- jmvcore::format(ciWidthTitleString, ciWidth=self$options$ciWidthOR)
+            ciWidthTitle <- jmvcore::format(ciWidthTitleString, ciWidth = self$options$ciWidth)
+            ciWidthORTitle <- jmvcore::format(ciWidthTitleString, ciWidth = self$options$ciWidthOR)
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$coef
+                table <- groups$get(key = i)$coef
 
                 table$getColumn('dep')$setTitle(dep)
                 table$getColumn('lower')$setSuperTitle(ciWidthTitle)
@@ -381,29 +369,31 @@ logRegMultiClass <- R6::R6Class(
                     comparison <- paste(depCompLevels[j], "-", depRefLevel)
 
                     rowKey <- paste0(j, jmvcore::composeTerm("(Intercept)"))
-                    table$addRow(rowKey=rowKey, values=list(dep=comparison, term = .("Intercept")))
-                    table$addFormat(rowKey=rowKey, col=1, Cell.BEGIN_GROUP)
+                    table$addRow(
+                        rowKey = rowKey,
+                        values = list(dep = comparison, term = .("Intercept"))
+                    )
+                    table$addFormat(rowKey = rowKey, col = 1, Cell.BEGIN_GROUP)
 
-                    if (j == 1)
-                        coefTerms[[1]] <- "(Intercept)"
+                    if (j == 1) coefTerms[[1]] <- "(Intercept)"
 
                     for (k in seq_along(terms)) {
-
-                        if (any(terms[[k]] %in% factors)) { # check if there are factors in the term
+                        if (any(terms[[k]] %in% factors)) {
+                            # check if there are factors in the term
                             table$addRow(
-                                rowKey=paste0(j, terms[[k]]),
-                                values=list(
-                                    dep=comparison,
-                                    term=paste0(jmvcore::stringifyTerm(terms[[k]]), ':'),
-                                    est='',
-                                    se='',
-                                    odds='',
-                                    z='',
-                                    p='',
-                                    lower='',
-                                    upper='',
-                                    oddsLower='',
-                                    oddsUpper=''
+                                rowKey = paste0(j, terms[[k]]),
+                                values = list(
+                                    dep = comparison,
+                                    term = paste0(jmvcore::stringifyTerm(terms[[k]]), ':'),
+                                    est = '',
+                                    se = '',
+                                    odds = '',
+                                    z = '',
+                                    p = '',
+                                    lower = '',
+                                    upper = '',
+                                    oddsLower = '',
+                                    oddsUpper = ''
                                 )
                             )
 
@@ -411,21 +401,23 @@ logRegMultiClass <- R6::R6Class(
                             coefNames <- coefs$coefNames
 
                             for (l in seq_along(coefNames)) {
-                                rowKey <- paste0(j,jmvcore::composeTerm(coefs$coefTerms[[l]]))
+                                rowKey <- paste0(j, jmvcore::composeTerm(coefs$coefTerms[[l]]))
                                 table$addRow(
-                                    rowKey=rowKey,
-                                    values=list(dep=comparison, term = coefNames[[l]])
+                                    rowKey = rowKey,
+                                    values = list(dep = comparison, term = coefNames[[l]])
                                 )
-                                table$addFormat(rowKey=rowKey, col=2, Cell.INDENTED)
+                                table$addFormat(rowKey = rowKey, col = 2, Cell.INDENTED)
                             }
 
-                            if (j == 1)
-                                coefTerms <- c(coefTerms, coefs$coefTerms)
+                            if (j == 1) coefTerms <- c(coefTerms, coefs$coefTerms)
                         } else {
-                            rowKey <- paste0(j,jmvcore::composeTerm(jmvcore::toB64(terms[[k]])))
+                            rowKey <- paste0(j, jmvcore::composeTerm(jmvcore::toB64(terms[[k]])))
                             table$addRow(
-                                rowKey=rowKey,
-                                values=list(dep=comparison, term=jmvcore::stringifyTerm(terms[[k]]))
+                                rowKey = rowKey,
+                                values = list(
+                                    dep = comparison,
+                                    term = jmvcore::stringifyTerm(terms[[k]])
+                                )
                             )
 
                             if (j == 1)
@@ -443,17 +435,15 @@ logRegMultiClass <- R6::R6Class(
             emMeans <- self$options$emMeans
 
             for (i in seq_along(termsAll)) {
-
-                group <- groups$get(key=i)$emm
+                group <- groups$get(key = i)$emm
                 terms <- unique(unlist(termsAll[[i]]))
 
                 for (j in seq_along(emMeans)) {
-
                     emm <- emMeans[[j]]
 
-                    if ( ! is.null(emm) && all(emm %in% terms)) {
-                        group$addItem(key=j)
-                        emmGroup <- group$get(key=j)
+                    if (!is.null(emm) && all(emm %in% terms)) {
+                        group$addItem(key = j)
+                        emmGroup <- group$get(key = j)
                         emmGroup$setTitle(jmvcore::stringifyTerm(emm))
 
                         image <- emmGroup$emmPlot
@@ -472,25 +462,23 @@ logRegMultiClass <- R6::R6Class(
 
             emMeansTableTitle <- .('Estimated Marginal Means - {term}')
             ciWidthTitle <- jmvcore::format(
-                .('{ciWidth}% Confidence Interval'), ciWidth=self$options$ciWidthEmm
+                .('{ciWidth}% Confidence Interval'),
+                ciWidth = self$options$ciWidthEmm
             )
 
             for (i in seq_along(termsAll)) {
-
-                group <- groups$get(key=i)$emm
+                group <- groups$get(key = i)$emm
                 terms <- unique(unlist(termsAll[[i]]))
 
                 for (j in seq_along(emMeans)) {
-
                     emm <- emMeans[[j]]
 
-                    if ( ! is.null(emm) && all(emm %in% terms)) {
-
-                        emmGroup <- group$get(key=j)
+                    if (!is.null(emm) && all(emm %in% terms)) {
+                        emmGroup <- group$get(key = j)
 
                         table <- emmGroup$emmTable
                         table$setTitle(
-                            jmvcore::format(emMeansTableTitle, term=jmvcore::stringifyTerm(emm))
+                            jmvcore::format(emMeansTableTitle, term = jmvcore::stringifyTerm(emm))
                         )
 
                         emm <- c(dep, emm)
@@ -498,33 +486,45 @@ logRegMultiClass <- R6::R6Class(
                         for (k in rev(seq_along(emm))) {
                             if (emm[k] %in% c(dep, factors)) {
                                 table$addColumn(
-                                    name=emm[k], title=emm[k], type='text', combineBelow=TRUE
+                                    name = emm[k],
+                                    title = emm[k],
+                                    type = 'text',
+                                    combineBelow = TRUE
                                 )
-                                nLevels[k] <- length(levels(self$data[[ emm[k] ]]))
+                                nLevels[k] <- length(levels(self$data[[emm[k]]]))
                             } else {
                                 table$addColumn(
-                                    name=emm[k], title=emm[k], type='number', combineBelow=TRUE
+                                    name = emm[k],
+                                    title = emm[k],
+                                    type = 'number',
+                                    combineBelow = TRUE
                                 )
                                 nLevels[k] <- 3
                             }
                         }
 
-                        table$addColumn(name='prob', title=.('Probability'), type='number')
-                        table$addColumn(name='se', title=.('SE'), type='number')
+                        table$addColumn(name = 'prob', title = .('Probability'), type = 'number')
+                        table$addColumn(name = 'se', title = .('SE'), type = 'number')
                         table$addColumn(
-                            name='lower', title=.('Lower'), type='number', superTitle=ciWidthTitle,
-                            visibl="(ciEmm)"
+                            name = 'lower',
+                            title = .('Lower'),
+                            type = 'number',
+                            superTitle = ciWidthTitle,
+                            visibl = "(ciEmm)"
                         )
                         table$addColumn(
-                            name='upper', title=.('Upper'), type='number', superTitle=ciWidthTitle,
-                            visibl="(ciEmm)"
+                            name = 'upper',
+                            title = .('Upper'),
+                            type = 'number',
+                            superTitle = ciWidthTitle,
+                            visibl = "(ciEmm)"
                         )
 
                         nRows <- prod(nLevels)
 
                         for (k in 1:nRows) {
                             row <- list()
-                            table$addRow(rowKey=k, row)
+                            table$addRow(rowKey = k, row)
                         }
                     }
                 }
@@ -546,23 +546,22 @@ logRegMultiClass <- R6::R6Class(
                 row[["df"]] <- self$modelTest[[i]]$df
                 row[["p"]] <- self$modelTest[[i]]$p
 
-                table$setRow(rowNo=i, values = row)
+                table$setRow(rowNo = i, values = row)
             }
 
             table$setNote(
                 "n",
                 jmvcore::format(
                     "Models estimated using sample size of N={n}",
-                    n=nrow(model.frame(self$models[[1]]))
+                    n = nrow(model.frame(self$models[[1]]))
                 )
             )
         },
         .populateModelCompTable = function() {
-            if (self$nModels <= 1)
-                return()
+            if (self$nModels <= 1) return()
 
             table <- self$results$modelComp
-            r <- self$lrtModelComparison[-1,]
+            r <- self$lrtModelComparison[-1, ]
 
             for (i in seq_len(self$nModels - 1)) {
                 row <- list()
@@ -570,7 +569,7 @@ logRegMultiClass <- R6::R6Class(
                 row[["df"]] <- r[['   Df']][i]
                 row[["p"]] <- r[['Pr(Chi)']][i]
 
-                table$setRow(rowNo=i, values=row)
+                table$setRow(rowNo = i, values = row)
             }
         },
         .populateLrtTables = function() {
@@ -578,7 +577,7 @@ logRegMultiClass <- R6::R6Class(
             termsAll <- private$terms
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$lrt
+                table <- groups$get(key = i)$lrt
 
                 terms <- termsAll[[i]]
                 termsB64 <- lapply(terms, jmvcore::toB64)
@@ -599,7 +598,7 @@ logRegMultiClass <- R6::R6Class(
                     row[["df"]] <- lrt[index, 'Df']
                     row[["p"]] <- lrt[index, 'Pr(>Chisq)']
 
-                    table$setRow(rowKey=paste0(terms[[j]]), values = row)
+                    table$setRow(rowKey = paste0(terms[[j]]), values = row)
                 }
             }
         },
@@ -610,13 +609,12 @@ logRegMultiClass <- R6::R6Class(
             compLevels <- jmvcore::toB64(private$compLevels)
 
             for (i in seq_along(termsAll)) {
-
-                table <- groups$get(key=i)$coef
+                table <- groups$get(key = i)$coef
 
                 model <- summary(self$models[[i]], Wald.ratios = TRUE)
                 CI <- self$CICoefEst[[i]]
                 CIOR <- self$CICoefEstOR[[i]]
-                coef<- model$coefficients
+                coef <- model$coefficients
                 se <- model$standard.errors
                 wald <- model$Wald.ratios
                 p <- (1 - pnorm(abs(wald), 0, 1)) * 2
@@ -647,7 +645,7 @@ logRegMultiClass <- R6::R6Class(
                         row[["oddsUpper"]] <- CIOR[index2, 2, index1]
 
                         table$setRow(
-                            rowKey=paste0(j, jmvcore::composeTerm(terms[[k]])),
+                            rowKey = paste0(j, jmvcore::composeTerm(terms[[k]])),
                             values = row
                         )
                     }
@@ -664,17 +662,14 @@ logRegMultiClass <- R6::R6Class(
             emmTables <- private$emMeans
 
             for (i in seq_along(termsAll)) {
-
-                group <- groups$get(key=i)$emm
+                group <- groups$get(key = i)$emm
                 terms <- unique(unlist(termsAll[[i]]))
 
                 for (j in seq_along(emMeans)) {
-
                     emm <- emMeans[[j]]
 
-                    if ( ! is.null(emm) && all(emm %in% terms)) {
-
-                        emmGroup <- group$get(key=j)
+                    if (!is.null(emm) && all(emm %in% terms)) {
+                        emmGroup <- group$get(key = j)
                         table <- emmGroup$emmTable
 
                         emmTable <- emmTables[[i]][[j]]
@@ -684,7 +679,7 @@ logRegMultiClass <- R6::R6Class(
                         covValues <- list()
                         for (k in seq_along(emm)) {
                             if (emm[k] %in% covs) {
-                                covValues[[ emm[k] ]] <- sort(
+                                covValues[[emm[k]]] <- sort(
                                     unique(emmTable[, jmvcore::toB64(emm[k])])
                                 )
                             }
@@ -695,18 +690,17 @@ logRegMultiClass <- R6::R6Class(
                             sign <- list()
 
                             for (l in seq_along(emm)) {
-
                                 value <- emmTable[k, jmvcore::toB64(emm[l])]
 
                                 if (emm[l] %in% covs) {
                                     row[[emm[l]]] <- value
 
-                                    if (value == covValues[[ emm[l] ]][1])
-                                        sign[[ emm[l] ]] <- '\u207B'
-                                    else if (value == covValues[[ emm[l] ]][3])
-                                        sign[[ emm[l] ]] <- '\u207A'
-                                    else
-                                        sign[[ emm[l] ]] <- '<sup>\u03BC</sup>'
+                                    if (value == covValues[[emm[l]]][1])
+                                        sign[[emm[l]]] <- '\u207B' else if (
+                                        value == covValues[[emm[l]]][3]
+                                    )
+                                        sign[[emm[l]]] <- '\u207A' else
+                                        sign[[emm[l]]] <- '<sup>\u03BC</sup>'
                                 } else {
                                     row[[emm[l]]] <- jmvcore::fromB64(value)
                                 }
@@ -717,18 +711,19 @@ logRegMultiClass <- R6::R6Class(
                             row[['lower']] <- emmTable[k, 'lower.CL']
                             row[['upper']] <- emmTable[k, 'upper.CL']
 
-                            table$setRow(rowNo=k, values=row)
+                            table$setRow(rowNo = k, values = row)
 
                             if (length(covValues) > 0) {
-
                                 table$setNote(
                                     "sub",
-                                    .("\u207B mean - 1SD, <sup>\u03BC</sup> mean, \u207A mean + 1SD")
+                                    .(
+                                        "\u207B mean - 1SD, <sup>\u03BC</sup> mean, \u207A mean + 1SD"
+                                    )
                                 )
 
                                 for (l in seq_along(emm)) {
                                     if (emm[l] %in% covs)
-                                        table$addSymbol(rowNo=k, emm[l], sign[[ emm[l] ]])
+                                        table$addSymbol(rowNo = k, emm[l], sign[[emm[l]]])
                                 }
                             }
                         }
@@ -753,67 +748,71 @@ logRegMultiClass <- R6::R6Class(
             emmTables <- list()
 
             for (i in seq_along(termsAll)) {
-
-                group <- groups$get(key=i)$emm
+                group <- groups$get(key = i)$emm
                 terms <- unique(unlist(termsAll[[i]]))
                 model <- self$models[[i]]
 
                 emmTable <- list()
 
                 for (j in seq_along(emMeans)) {
-
                     term <- emMeans[[j]]
 
-                    if ( ! is.null(term) && all(term %in% terms)) {
-
-                        image <- group$get(key=j)$emmPlot
+                    if (!is.null(term) && all(term %in% terms)) {
+                        image <- group$get(key = j)$emmPlot
 
                         term <- c(dep, term)
                         termB64 <- jmvcore::toB64(term)
 
-                        FUN <- list(); FUN2 <- list()
+                        FUN <- list()
+                        FUN2 <- list()
                         cont <- FALSE
 
-                        for(k in seq_along(termB64)) {
-
+                        for (k in seq_along(termB64)) {
                             if (term[k] %in% covs) {
                                 if (k == 2) {
-                                    FUN[[termB64[k]]] <- function(x)  pretty(x, 25)
+                                    FUN[[termB64[k]]] <- function(x) pretty(x, 25)
                                     cont <- TRUE
                                 } else {
-                                    FUN[[termB64[k]]] <- function(x)  c(mean(x)-sd(x), mean(x), mean(x)+sd(x))
+                                    FUN[[termB64[k]]] <- function(x)
+                                        c(mean(x) - sd(x), mean(x), mean(x) + sd(x))
                                 }
 
-                                FUN2[[termB64[[k]]]] <- function(x)  c(mean(x)-sd(x), mean(x), mean(x)+sd(x))
+                                FUN2[[termB64[[k]]]] <- function(x)
+                                    c(mean(x) - sd(x), mean(x), mean(x) + sd(x))
                             }
                         }
 
                         formula <- formula(paste('~', jmvcore::composeTerm(termB64)))
 
-                        if (self$options$emmWeights)
-                            weights <- 'equal'
-                        else
-                            weights <- 'cells'
+                        if (self$options$emmWeights) weights <- 'equal' else weights <- 'cells'
 
                         suppressMessages({
                             emmeans::emm_options(sep = ",", parens = "a^")
 
                             mm <- try(
                                 emmeans::emmeans(
-                                    model, formula, cov.reduce=FUN, type='response',
-                                    options=list(level=self$options$ciWidthEmm / 100),
-                                    weights=weights, data=data
+                                    model,
+                                    formula,
+                                    cov.reduce = FUN,
+                                    type = 'response',
+                                    options = list(level = self$options$ciWidthEmm / 100),
+                                    weights = weights,
+                                    data = data
                                 ),
                                 silent = TRUE
                             )
 
-                            emmTable[[ j ]] <- try(
+                            emmTable[[j]] <- try(
                                 as.data.frame(
                                     summary(
                                         emmeans::emmeans(
-                                            model, formula, cov.reduce=FUN2, type='response',
-                                            options=list(level=self$options$ciWidthEmm / 100),
-                                            weights = weights, data=data
+                                            model,
+                                            formula,
+                                            cov.reduce = FUN2,
+                                            type = 'response',
+                                            options = list(level = self$options$ciWidthEmm / 100),
+                                            weights = weights,
+                                            data = data
                                         )
                                     )
                                 ),
@@ -827,35 +826,42 @@ logRegMultiClass <- R6::R6Class(
                         d <- as.data.frame(summary(mm))
 
                         for (k in 1:4) {
-                            if ( ! is.na(termB64[k])) {
+                            if (!is.na(termB64[k])) {
                                 if (term[k] %in% covs) {
                                     if (k > 2) {
-                                        d[[ termB64[k] ]] <- factor(d[[ termB64[k] ]])
-                                        levels(d[[ termB64[k] ]]) <- c('-1SD', 'Mean', '+1SD')
+                                        d[[termB64[k]]] <- factor(d[[termB64[k]]])
+                                        levels(d[[termB64[k]]]) <- c('-1SD', 'Mean', '+1SD')
                                     }
                                 } else {
-                                    d[[ termB64[k] ]] <- factor(
-                                        jmvcore::fromB64(d[[ termB64[k] ]]),
-                                        jmvcore::fromB64(levels(d[[ termB64[k] ]]))
+                                    d[[termB64[k]]] <- factor(
+                                        jmvcore::fromB64(d[[termB64[k]]]),
+                                        jmvcore::fromB64(levels(d[[termB64[k]]]))
                                     )
                                 }
                             }
                         }
 
                         names <- list(
-                            'x'=termB64[2], 'y'='prob', 'lines'=termB64[1], 'xPlots'=termB64[3],
-                            'yPlots'=termB64[4], 'lower'='lower.CL', 'upper'='upper.CL'
+                            'x' = termB64[2],
+                            'y' = 'prob',
+                            'lines' = termB64[1],
+                            'xPlots' = termB64[3],
+                            'yPlots' = termB64[4],
+                            'lower' = 'lower.CL',
+                            'upper' = 'upper.CL'
                         )
                         names <- lapply(names, function(x) if (is.na(x)) NULL else x)
 
                         labels <- list(
-                            'x'=term[2], 'y'=.('Probability'), 'lines'=term[1], 'xPlots'=term[3],
-                            'yPlots'=term[4]
+                            'x' = term[2],
+                            'y' = .('Probability'),
+                            'lines' = term[1],
+                            'xPlots' = term[3],
+                            'yPlots' = term[4]
                         )
                         labels <- lapply(labels, function(x) if (is.na(x)) NULL else x)
 
-                        image$setState(list(data=d, names=names, labels=labels, cont=cont))
-
+                        image$setState(list(data = d, names = names, labels = labels, cont = cont))
                     }
                 }
 
@@ -865,8 +871,7 @@ logRegMultiClass <- R6::R6Class(
             private$emMeans <- emmTables
         },
         .emmPlot = function(image, ggtheme, theme, ...) {
-            if (is.null(image$state))
-                return(FALSE)
+            if (is.null(image$state)) return(FALSE)
 
             data <- image$state$data
             names <- image$state$names
@@ -876,8 +881,8 @@ logRegMultiClass <- R6::R6Class(
             dodge <- position_dodge(0.4)
 
             p <- ggplot(
-                data=data,
-                aes_string(x=names$x, y=names$y, color=names$lines, fill=names$lines),
+                data = data,
+                aes_string(x = names$x, y = names$y, color = names$lines, fill = names$lines),
                 inherit.aes = FALSE
             )
 
@@ -885,25 +890,29 @@ logRegMultiClass <- R6::R6Class(
                 p <- p + geom_line()
 
                 if (self$options$ciEmm && is.null(names$plots) && is.null(names$lines)) {
-                    p <- p + geom_ribbon(
-                        aes_string(x=names$x, ymin=names$lower, ymax=names$upper),
-                        show.legend=TRUE,
-                        alpha=.3
-                    )
+                    p <- p +
+                        geom_ribbon(
+                            aes_string(x = names$x, ymin = names$lower, ymax = names$upper),
+                            show.legend = TRUE,
+                            alpha = .3
+                        )
                 }
             } else {
                 p <- p + geom_point(position = dodge)
 
                 if (self$options$ciEmm) {
-                    p <- p + geom_errorbar(
-                        aes_string(x=names$x, ymin=names$lower, ymax=names$upper),
-                        width=.1, size=.8, position=dodge
-                    )
+                    p <- p +
+                        geom_errorbar(
+                            aes_string(x = names$x, ymin = names$lower, ymax = names$upper),
+                            width = .1,
+                            size = .8,
+                            position = dodge
+                        )
                 }
             }
 
-            if ( ! is.null(names$xPlots)) {
-                if (! is.null(names$yPlots)) {
+            if (!is.null(names$xPlots)) {
+                if (!is.null(names$yPlots)) {
                     formula <- as.formula(paste(names$yPlots, "~", names$xPlots))
                 } else {
                     formula <- as.formula(paste(". ~", names$xPlots))
@@ -912,9 +921,11 @@ logRegMultiClass <- R6::R6Class(
                 p <- p + facet_grid(formula)
             }
 
-            p <- p + ylim(0,1) +
-                labs(x=labels$x, y=labels$y, fill=labels$lines, color=labels$lines) +
-                ggtheme + theme(panel.spacing = unit(2, "lines"))
+            p <- p +
+                ylim(0, 1) +
+                labs(x = labels$x, y = labels$y, fill = labels$lines, color = labels$lines) +
+                ggtheme +
+                theme(panel.spacing = unit(2, "lines"))
 
             return(p)
         },
@@ -943,14 +954,14 @@ logRegMultiClass <- R6::R6Class(
             refVars <- sapply(refLevels, function(x) x$var)
 
             levels <- list()
-            for (factor in factors)
-                levels[[factor]] <- levels(self$data[[factor]])
+            for (factor in factors) levels[[factor]] <- levels(self$data[[factor]])
 
-            contrLevels <- list(); refLevel <- list(); contr <- list(); rContr <- list()
+            contrLevels <- list()
+            refLevel <- list()
+            contr <- list()
+            rContr <- list()
             for (term in terms) {
-
                 if (term %in% factors) {
-
                     ref <- refLevels[[which(term == refVars)]][['ref']]
                     refNo <- which(ref == levels[[term]])
 
@@ -959,24 +970,28 @@ logRegMultiClass <- R6::R6Class(
 
                     if (length(terms) > 1) {
                         contr[[term]] <- paste0(
-                            '(', paste(contrLevels[[term]], refLevel[[term]], sep=' \u2013 '), ')'
+                            '(',
+                            paste(contrLevels[[term]], refLevel[[term]], sep = ' \u2013 '),
+                            ')'
                         )
                     } else {
                         contr[[term]] <- paste(
-                            contrLevels[[term]], refLevel[[term]], sep = ' \u2013 '
+                            contrLevels[[term]],
+                            refLevel[[term]],
+                            sep = ' \u2013 '
                         )
                     }
 
-                    rContr[[term]] <- paste0(jmvcore::toB64(term), jmvcore::toB64(contrLevels[[term]]))
+                    rContr[[term]] <- paste0(
+                        jmvcore::toB64(term),
+                        jmvcore::toB64(contrLevels[[term]])
+                    )
 
                     # If custom contrast is used:
                     # rContr[[term]] <- paste0(jmvcore::toB64(term), 1:length(contrLevels[[term]]))
-
                 } else {
-
                     contr[[term]] <- term
                     rContr[[term]] <- jmvcore::toB64(term)
-
                 }
             }
 
@@ -985,22 +1000,21 @@ logRegMultiClass <- R6::R6Class(
 
             grid2 <- expand.grid(rContr)
             coefTerms <- list()
-            for (i in 1:nrow(grid2))
-                coefTerms[[i]] <- as.character(unlist(grid2[i,]))
+            for (i in 1:nrow(grid2)) coefTerms[[i]] <- as.character(unlist(grid2[i, ]))
 
-            return(list(coefNames=coefNames, coefTerms=coefTerms))
+            return(list(coefNames = coefNames, coefTerms = coefTerms))
         },
         .getFormulas = function() {
             dep <- self$options$dep
             depB64 <- jmvcore::toB64(dep)
             terms <- private$terms
 
-            formulas <- list();
+            formulas <- list()
             for (i in seq_along(terms)) {
                 termsB64 <- lapply(terms[[i]], jmvcore::toB64)
                 composedTerms <- jmvcore::composeTerms(termsB64)
                 formulas[[i]] <- as.formula(
-                    paste(depB64, paste0(composedTerms, collapse ="+"), sep="~")
+                    paste(depB64, paste0(composedTerms, collapse = "+"), sep = "~")
                 )
             }
 
@@ -1013,10 +1027,12 @@ logRegMultiClass <- R6::R6Class(
             if (length(levels(column)) == 2) {
                 jmvcore::reject(
                     jmvcore::format(
-                        .('The dependent variable "{dep}" has only two levels, consider doing a binomial logistic regression.'),
-                        dep=dep
+                        .(
+                            'The dependent variable "{dep}" has only two levels, consider doing a binomial logistic regression.'
+                        ),
+                        dep = dep
                     ),
-                    code=''
+                    code = ''
                 )
             }
         },
@@ -1045,12 +1061,10 @@ logRegMultiClass <- R6::R6Class(
                 data[[jmvcore::toB64(factor)]] <- column
             }
 
-            for (cov in covs)
-                data[[jmvcore::toB64(cov)]] <- jmvcore::toNumeric(dataRaw[[cov]])
+            for (cov in covs) data[[jmvcore::toB64(cov)]] <- jmvcore::toNumeric(dataRaw[[cov]])
 
             global_weights <- attr(dataRaw, "jmv-weights")
-            if (! is.null(global_weights))
-                data[[".WEIGHTS"]] <- jmvcore::toNumeric(global_weights)
+            if (!is.null(global_weights)) data[[".WEIGHTS"]] <- jmvcore::toNumeric(global_weights)
 
             attr(data, 'row.names') <- seq_len(length(data[[1]]))
             attr(data, 'class') <- 'data.frame'
@@ -1065,18 +1079,15 @@ logRegMultiClass <- R6::R6Class(
             dep <- self$options$dep
 
             levels <- list()
-            levels[[ dep ]] <- levels(data[[ dep ]])
+            levels[[dep]] <- levels(data[[dep]])
             for (i in seq_along(emm)) {
-
-                column <- data[[ emm[i] ]]
+                column <- data[[emm[i]]]
 
                 if (emm[i] %in% factors) {
-                    levels[[ emm[i] ]] <- levels(column)
+                    levels[[emm[i]]] <- levels(column)
                 } else {
-                    if (i == 1)
-                        levels[[ emm[i] ]] <- ''
-                    else
-                        levels[[ emm[i] ]] <- c('-1SD', 'Mean', '+1SD')
+                    if (i == 1) levels[[emm[i]]] <- '' else
+                        levels[[emm[i]]] <- c('-1SD', 'Mean', '+1SD')
                 }
             }
 
@@ -1091,16 +1102,12 @@ logRegMultiClass <- R6::R6Class(
             yAxis <- 30 + 20
 
             if (emm[1] %in% factors) {
-
                 width <- max(350, 25 * nLevels[1] * nLevels[2] * nLevels[3]) +
                     ifelse(nLevels[4] > 1, 20, 0)
                 height <- 300 * nLevels[4] + ifelse(nLevels[3] > 1, 20, 0)
-
             } else {
-
                 width <- max(350, 300 * nLevels[3]) + ifelse(nLevels[3] > 1, 20, 0)
-                height <- 300 *  nLevels[4] + ifelse(nLevels[4] > 1, 20, 0)
-
+                height <- 300 * nLevels[4] + ifelse(nLevels[4] > 1, 20, 0)
             }
 
             legend <- max(25 + 21 + 3.5 + 8.3 * nCharLevels[2] + 28, 25 + 10 * nCharNames[2] + 28)
@@ -1109,14 +1116,15 @@ logRegMultiClass <- R6::R6Class(
 
             return(c(width, height))
         },
-        .createContrasts=function(levels) {
+        .createContrasts = function(levels) {
             nLevels <- length(levels)
 
             dummy <- contr.treatment(levels)
             dimnames(dummy) <- NULL
-            coding <- matrix(rep(1/nLevels, prod(dim(dummy))), ncol=nLevels-1)
+            coding <- matrix(rep(1 / nLevels, prod(dim(dummy))), ncol = nLevels - 1)
             contrast <- (dummy - coding)
 
             return(contrast)
-        })
+        }
+    )
 )

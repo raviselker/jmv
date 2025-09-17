@@ -23,36 +23,48 @@ testthat::test_that('All options in the corrPart work for partial correlation (s
 
     # Test Pearson's r
     testthat::expect_equal(
-        0.254, as.numeric(corTable$getCell(rowKey="var 2", "var 1[r]")$value), tolerance = 1e-3
+        0.254,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[r]")$value),
+        tolerance = 1e-3
     )
 
     # Test Pearson's r p-value
     testthat::expect_equal(
-        0.478, as.numeric(corTable$getCell(rowKey="var 2", "var 1[rp]")$value), tolerance = 1e-3
+        0.478,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[rp]")$value),
+        tolerance = 1e-3
     )
 
     # Test Spearman's rho
     testthat::expect_equal(
-        0.197, as.numeric(corTable$getCell(rowKey="var 2", "var 1[rho]")$value), tolerance = 1e-3
+        0.197,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[rho]")$value),
+        tolerance = 1e-3
     )
 
     # Test Spearman's rho p-value
     testthat::expect_equal(
-        0.586, as.numeric(corTable$getCell(rowKey="var 2", "var 1[rhop]")$value), tolerance = 1e-3
+        0.586,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[rhop]")$value),
+        tolerance = 1e-3
     )
 
     # Test Kendall's tau
     testthat::expect_equal(
-        0.193, as.numeric(corTable$getCell(rowKey="var 2", "var 1[tau]")$value), tolerance = 1e-3
+        0.193,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[tau]")$value),
+        tolerance = 1e-3
     )
 
     # Test Kendall's tau p-value
     testthat::expect_equal(
-        0.436, as.numeric(corTable$getCell(rowKey="var 2", "var 1[taup]")$value), tolerance = 1e-3
+        0.436,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[taup]")$value),
+        tolerance = 1e-3
     )
 
     # Test N
-    testthat::expect_equal(11, as.numeric(corTable$getCell(rowKey="var 2", "var 1[n]")$value))
+    testthat::expect_equal(11, as.numeric(corTable$getCell(rowKey = "var 2", "var 1[n]")$value))
 })
 
 testthat::test_that('All options in the corrPart work for semipartial correlation (sunny)', {
@@ -78,53 +90,77 @@ testthat::test_that('All options in the corrPart work for semipartial correlatio
 
     # Test Pearson's r
     testthat::expect_equal(
-        0.194, as.numeric(corTable$getCell(rowKey="var 2", "var 1[r]")$value), tolerance = 1e-3
+        0.194,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[r]")$value),
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        0.251, as.numeric(corTable$getCell(rowKey="var 1", "var 2[r]")$value), tolerance = 1e-3
+        0.251,
+        as.numeric(corTable$getCell(rowKey = "var 1", "var 2[r]")$value),
+        tolerance = 1e-3
     )
 
     # Test Pearson's r p-value
     testthat::expect_equal(
-        0.591, as.numeric(corTable$getCell(rowKey="var 2", "var 1[rp]")$value), tolerance = 1e-3
+        0.591,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[rp]")$value),
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        0.484, as.numeric(corTable$getCell(rowKey="var 1", "var 2[rp]")$value), tolerance = 1e-3
+        0.484,
+        as.numeric(corTable$getCell(rowKey = "var 1", "var 2[rp]")$value),
+        tolerance = 1e-3
     )
 
     # Test Spearman's rho
     testthat::expect_equal(
-        0.162, as.numeric(corTable$getCell(rowKey="var 2", "var 1[rho]")$value), tolerance = 1e-3
+        0.162,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[rho]")$value),
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        0.196, as.numeric(corTable$getCell(rowKey="var 1", "var 2[rho]")$value), tolerance = 1e-3
+        0.196,
+        as.numeric(corTable$getCell(rowKey = "var 1", "var 2[rho]")$value),
+        tolerance = 1e-3
     )
 
     # Test Spearman's rho p-value
     testthat::expect_equal(
-        0.656, as.numeric(corTable$getCell(rowKey="var 2", "var 1[rhop]")$value), tolerance = 1e-3
+        0.656,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[rhop]")$value),
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        0.587, as.numeric(corTable$getCell(rowKey="var 1", "var 2[rhop]")$value), tolerance = 1e-3
+        0.587,
+        as.numeric(corTable$getCell(rowKey = "var 1", "var 2[rhop]")$value),
+        tolerance = 1e-3
     )
 
     # Test Kendall's tau
     testthat::expect_equal(
-        0.177, as.numeric(corTable$getCell(rowKey="var 2", "var 1[tau]")$value), tolerance = 1e-3
+        0.177,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[tau]")$value),
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        0.193, as.numeric(corTable$getCell(rowKey="var 1", "var 2[tau]")$value), tolerance = 1e-3
+        0.193,
+        as.numeric(corTable$getCell(rowKey = "var 1", "var 2[tau]")$value),
+        tolerance = 1e-3
     )
 
     # Test Kendall's tau p-value
     testthat::expect_equal(
-        0.477, as.numeric(corTable$getCell(rowKey="var 2", "var 1[taup]")$value), tolerance = 1e-3
+        0.477,
+        as.numeric(corTable$getCell(rowKey = "var 2", "var 1[taup]")$value),
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        0.436, as.numeric(corTable$getCell(rowKey="var 1", "var 2[taup]")$value), tolerance = 1e-3
+        0.436,
+        as.numeric(corTable$getCell(rowKey = "var 1", "var 2[taup]")$value),
+        tolerance = 1e-3
     )
 
     # Test N
-    testthat::expect_equal(11, as.numeric(corTable$getCell(rowKey="var 2", "var 1[n]")$value))
-    testthat::expect_equal(11, as.numeric(corTable$getCell(rowKey="var 1", "var 2[n]")$value))
+    testthat::expect_equal(11, as.numeric(corTable$getCell(rowKey = "var 2", "var 1[n]")$value))
+    testthat::expect_equal(11, as.numeric(corTable$getCell(rowKey = "var 1", "var 2[n]")$value))
 })

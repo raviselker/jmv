@@ -21,7 +21,8 @@ testthat::test_that('All options in the pca work (sunny)', {
     # Test factor loadings table
     loadingsTable <- r$loadings$asDF
     testthat::expect_equal(
-        c('x5', 'x4', 'x6', 'x3', 'x2', 'x 1', 'x7', 'x8', 'x9'), loadingsTable[['name']]
+        c('x5', 'x4', 'x6', 'x3', 'x2', 'x 1', 'x7', 'x8', 'x9'),
+        loadingsTable[['name']]
     )
     testthat::expect_equal(
         c(0.903, 0.889, 0.869, 0.018, 0.083, 0.321, 0.098, 0.042, 0.13),
@@ -52,10 +53,10 @@ testthat::test_that('All options in the pca work (sunny)', {
     testthat::expect_equal(c(27.784, 48.587, 69.114), summaryTable[['varCum']], tolerance = 1e-3)
 
     # Test inter-factor correlations table
-    factorCorTable <- r$factorStats$factorCor#a
-    testthat::expect_equal(0.000, factorCorTable$getCell(rowNo=1, "pc2")$value, tolerance = 1e-3)
-    testthat::expect_equal(0.000, factorCorTable$getCell(rowNo=1, "pc3")$value, tolerance = 1e-3)
-    testthat::expect_equal(0.000, factorCorTable$getCell(rowNo=2, "pc3")$value, tolerance = 1e-3)
+    factorCorTable <- r$factorStats$factorCor #a
+    testthat::expect_equal(0.000, factorCorTable$getCell(rowNo = 1, "pc2")$value, tolerance = 1e-3)
+    testthat::expect_equal(0.000, factorCorTable$getCell(rowNo = 1, "pc3")$value, tolerance = 1e-3)
+    testthat::expect_equal(0.000, factorCorTable$getCell(rowNo = 2, "pc3")$value, tolerance = 1e-3)
 
     # Test sphericity test table
     spherTable <- r$assump$bartlett$asDF
@@ -66,7 +67,8 @@ testthat::test_that('All options in the pca work (sunny)', {
     # Test KMO table
     kmoTable <- r$assump$kmo$asDF
     testthat::expect_equal(
-        c('Overall', 'x 1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'), kmoTable[['name']]
+        c('Overall', 'x 1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'),
+        kmoTable[['name']]
     )
     testthat::expect_equal(
         c(0.752, 0.805, 0.778, 0.734, 0.763, 0.739, 0.808, 0.593, 0.683, 0.788),
@@ -77,7 +79,9 @@ testthat::test_that('All options in the pca work (sunny)', {
     # Test eigenvalues table
     eigenTable <- r$eigen$initEigen$asDF
     testthat::expect_equal(
-        c('1', '2', '3', '4', '5', '6', '7', '8', '9'), eigenTable[['comp']])
+        c('1', '2', '3', '4', '5', '6', '7', '8', '9'),
+        eigenTable[['comp']]
+    )
     testthat::expect_equal(
         c(3.216, 1.639, 1.365, 0.699, 0.584, 0.5, 0.473, 0.286, 0.238),
         eigenTable[['eigen']],
@@ -109,7 +113,7 @@ testthat::test_that('Error is thrown when n components > n variables', {
             nFactors = 3
         ),
         'Number of components cannot be bigger than number of variables',
-        fixed=TRUE
+        fixed = TRUE
     )
 })
 

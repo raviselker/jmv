@@ -1,4 +1,3 @@
-
 #' bugs
 #'
 #' @name bugs

@@ -12,9 +12,9 @@ testthat::test_that('All options in the contTables work (sunny)', {
     )
 
     r <- jmv::contTables(
-        data=df,
-        rows="x 1",
-        cols="y",
+        data = df,
+        rows = "x 1",
+        cols = "y",
         chiSqCorr = TRUE,
         zProp = TRUE,
         likeRat = TRUE,
@@ -44,10 +44,12 @@ testthat::test_that('All options in the contTables work (sunny)', {
     testthat::expect_equal(c('Observed', 'Observed', 'Observed'), mainTable[['type[count]']])
     testthat::expect_equal(c('Expected', 'Expected', 'Expected'), mainTable[['type[expected]']])
     testthat::expect_equal(
-        c('% within row', '% within row', '% within row'), mainTable[['type[pcRow]']]
+        c('% within row', '% within row', '% within row'),
+        mainTable[['type[pcRow]']]
     )
     testthat::expect_equal(
-        c('% within column', '% within column', '% within column'), mainTable[['type[pcCol]']]
+        c('% within column', '% within column', '% within column'),
+        mainTable[['type[pcCol]']]
     )
     testthat::expect_equal(c('% of total', '% of total', '% of total'), mainTable[['type[pcTot]']])
     testthat::expect_equal(c(23, 28, 51), mainTable[['1[count]']])
@@ -68,9 +70,15 @@ testthat::test_that('All options in the contTables work (sunny)', {
 
     # Test residuals postHoc tables
     postHoc <- r$postHoc$asDF
-    testthat::expect_equal(c('Unstandardized residuals', 'Unstandardized residuals'), postHoc[['type[resU]']])
+    testthat::expect_equal(
+        c('Unstandardized residuals', 'Unstandardized residuals'),
+        postHoc[['type[resU]']]
+    )
     testthat::expect_equal(c('Pearson residuals', 'Pearson residuals'), postHoc[['type[resP]']])
-    testthat::expect_equal(c('Standardized residuals', 'Standardized residuals'), postHoc[['type[resS]']])
+    testthat::expect_equal(
+        c('Standardized residuals', 'Standardized residuals'),
+        postHoc[['type[resS]']]
+    )
     testthat::expect_equal(c('Deviance residuals', 'Deviance residuals'), postHoc[['type[resA]']])
     testthat::expect_equal(c(0.0500, -0.0500), postHoc[['1[resU]']], tolerance = 1e-3)
     testthat::expect_equal(c(-0.0500, 0.0500), postHoc[['2[resU]']], tolerance = 1e-3)
@@ -105,7 +113,6 @@ testthat::test_that('All options in the contTables work (sunny)', {
     testthat::expect_equal('N', chiSqTable[['test[N]']], tolerance = 1e-3)
     testthat::expect_equal(100, chiSqTable[['value[N]']], tolerance = 1e-3)
 
-
     # Test comparative measures table
     compMeasuresTable <- r$odds$asDF
     testthat::expect_equal('Difference in 2 proportions', compMeasuresTable[['t[dp]']])
@@ -124,7 +131,6 @@ testthat::test_that('All options in the contTables work (sunny)', {
     testthat::expect_equal(1.004, compMeasuresTable[['v[rr]']], tolerance = 1e-3)
     testthat::expect_equal(0.682, compMeasuresTable[['cil[rr]']], tolerance = 1e-3)
     testthat::expect_equal(1.477, compMeasuresTable[['ciu[rr]']], tolerance = 1e-3)
-
 
     # Test nominal table
     nominalTable <- r$nom$asDF
@@ -159,14 +165,14 @@ testthat::test_that('conttables works without counts', {
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(100)
 
-    x <- factor(sample(c("A","B"), 100, replace = TRUE), c("A","B"))
-    y <- factor(sample(c("I","II"), 100, replace = TRUE), c("I","II"))
-    z <- factor(sample(c("foo","bar"), 100, replace = TRUE), c("foo","bar"))
-    w <- factor(sample(c("fred","steve"), 100, replace = TRUE), c("fred","steve"))
+    x <- factor(sample(c("A", "B"), 100, replace = TRUE), c("A", "B"))
+    y <- factor(sample(c("I", "II"), 100, replace = TRUE), c("I", "II"))
+    z <- factor(sample(c("foo", "bar"), 100, replace = TRUE), c("foo", "bar"))
+    w <- factor(sample(c("fred", "steve"), 100, replace = TRUE), c("fred", "steve"))
 
     data1 <- data.frame(x = x, y = y, z = z, w = w)
 
-    table1<- jmv::contTables(data=data1, rows="x", cols="y")
+    table1 <- jmv::contTables(data = data1, rows = "x", cols = "y")
 
     freqs1 <- as.data.frame(table1$freqs)
 
@@ -175,7 +181,7 @@ testthat::test_that('conttables works without counts', {
     testthat::expect_equal(22, freqs1[2, '1[count]'])
     testthat::expect_equal(28, freqs1[2, '2[count]'])
 
-    table2 <- jmv::contTables(data=data1, rows="x", cols="y", layers=c("z","w"))
+    table2 <- jmv::contTables(data = data1, rows = "x", cols = "y", layers = c("z", "w"))
 
     freqs2 <- as.data.frame(table2$freqs)
 
@@ -194,14 +200,27 @@ testthat::test_that("conttables works with counts", {
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(212)
 
-    rows <- factor(c("A","B","C","A","B","C","A","B","C","A","B","C"), c("A","B","C"))
-    cols <- factor(c("1","1","1","2","2","2","1","1","1","2","2","2"), c("1","2"))
-    layer <- factor(c("I","I","I","I","I","I","II","II","II","II","II","II"), c("I","II"))
+    rows <- factor(c("A", "B", "C", "A", "B", "C", "A", "B", "C", "A", "B", "C"), c("A", "B", "C"))
+    cols <- factor(c("1", "1", "1", "2", "2", "2", "1", "1", "1", "2", "2", "2"), c("1", "2"))
+    layer <- factor(
+        c("I", "I", "I", "I", "I", "I", "II", "II", "II", "II", "II", "II"),
+        c("I", "II")
+    )
     counts <- sample(0:20, 12, replace = TRUE)
 
     data <- data.frame(rows = rows, cols = cols, layer = layer, counts = counts)
 
-    table <- jmv::contTables(data=data, rows="rows", cols="cols", layers="layer", counts="counts", resU=TRUE, resP=TRUE, resS=TRUE, resA=TRUE)
+    table <- jmv::contTables(
+        data = data,
+        rows = "rows",
+        cols = "cols",
+        layers = "layer",
+        counts = "counts",
+        resU = TRUE,
+        resP = TRUE,
+        resS = TRUE,
+        resA = TRUE
+    )
 
     freqs <- as.data.frame(table$freqs)
 
@@ -229,15 +248,18 @@ testthat::test_that("conttables works with global integer weights", {
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(212)
 
-    rows <- factor(c("A","B","C","A","B","C","A","B","C","A","B","C"), c("A","B","C"))
-    cols <- factor(c("1","1","1","2","2","2","1","1","1","2","2","2"), c("1","2"))
-    layer <- factor(c("I","I","I","I","I","I","II","II","II","II","II","II"), c("I","II"))
+    rows <- factor(c("A", "B", "C", "A", "B", "C", "A", "B", "C", "A", "B", "C"), c("A", "B", "C"))
+    cols <- factor(c("1", "1", "1", "2", "2", "2", "1", "1", "1", "2", "2", "2"), c("1", "2"))
+    layer <- factor(
+        c("I", "I", "I", "I", "I", "I", "II", "II", "II", "II", "II", "II"),
+        c("I", "II")
+    )
     counts <- sample(0:20, 12, replace = TRUE)
 
     data <- data.frame(rows = rows, cols = cols, layer = layer)
     attr(data, "jmv-weights") <- counts
 
-    table <- jmv::contTables(data=data, rows="rows", cols="cols", layers="layer")
+    table <- jmv::contTables(data = data, rows = "rows", cols = "cols", layers = "layer")
 
     freqs <- as.data.frame(table$freqs)
 
@@ -254,7 +276,7 @@ testthat::test_that("bar plots work with spaces in variable name", {
     data$dose <- factor(data$dose)
     names(data) <- c("len", "su pp", "do se")
 
-    table <- jmv::contTables(data=data, rows="su pp", cols="do se", barplot=TRUE)
+    table <- jmv::contTables(data = data, rows = "su pp", cols = "do se", barplot = TRUE)
 
     testthat::expect_true(table$barplot$.render())
 })

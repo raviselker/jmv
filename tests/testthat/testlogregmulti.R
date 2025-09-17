@@ -20,8 +20,8 @@ testthat::test_that('All options in the logRegMulti work (sunny)', {
         factors = "factor 1",
         blocks = list(list("cov 1", "cov 2", "factor 1")),
         refLevels = list(
-            list(var="dep 1", ref=letters[1]),
-            list(var="factor 1", ref=LETTERS[20])
+            list(var = "dep 1", ref = letters[1]),
+            list(var = "factor 1", ref = LETTERS[20])
         ),
         modelTest = TRUE,
         bic = TRUE,
@@ -122,7 +122,6 @@ testthat::test_that('All options in the logRegMulti work (sunny)', {
         tolerance = 1e-3
     )
 
-
     # Test estimated marginal means table
     emmeansTable1 <- r$models[[1]]$emm[[1]]$emmTable$asDF
     testthat::expect_equal(
@@ -131,7 +130,8 @@ testthat::test_that('All options in the logRegMulti work (sunny)', {
         tolerance = 1e-3
     )
     testthat::expect_equal(
-        c('a', 'b', 'c', 'a', 'b', 'c', 'a', 'b', 'c'), emmeansTable1[['dep 1']]
+        c('a', 'b', 'c', 'a', 'b', 'c', 'a', 'b', 'c'),
+        emmeansTable1[['dep 1']]
     )
     testthat::expect_equal(
         c(0.34, 0.289, 0.371, 0.33, 0.28, 0.39, 0.32, 0.271, 0.409),
@@ -161,7 +161,8 @@ testthat::test_that('All options in the logRegMulti work (sunny)', {
         tolerance = 1e-3
     )
     testthat::expect_equal(
-        c('a', 'b', 'c', 'a', 'b', 'c', 'a', 'b', 'c'), emmeansTable2[['dep 1']]
+        c('a', 'b', 'c', 'a', 'b', 'c', 'a', 'b', 'c'),
+        emmeansTable2[['dep 1']]
     )
     testthat::expect_equal(
         c(0.341, 0.279, 0.381, 0.33, 0.28, 0.39, 0.32, 0.281, 0.399),
@@ -188,16 +189,24 @@ testthat::test_that('All options in the logRegMulti work (sunny)', {
     testthat::expect_equal(c('T', 'T', 'T', 'U', 'U', 'U'), emmeansTable3[['factor 1']])
     testthat::expect_equal(c('a', 'b', 'c', 'a', 'b', 'c'), emmeansTable3[['dep 1']])
     testthat::expect_equal(
-        c(0.239, 0.36, 0.401, 0.421, 0.2, 0.379), emmeansTable3[['prob']], tolerance = 1e-3
+        c(0.239, 0.36, 0.401, 0.421, 0.2, 0.379),
+        emmeansTable3[['prob']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.06, 0.068, 0.069, 0.07, 0.057, 0.069), emmeansTable3[['se']], tolerance = 1e-3
+        c(0.06, 0.068, 0.069, 0.07, 0.057, 0.069),
+        emmeansTable3[['se']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.1, 0.203, 0.241, 0.26, 0.07, 0.22), emmeansTable3[['lower']], tolerance = 1e-3
+        c(0.1, 0.203, 0.241, 0.26, 0.07, 0.22),
+        emmeansTable3[['lower']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.379, 0.516, 0.561, 0.582, 0.331, 0.537), emmeansTable3[['upper']], tolerance = 1e-3
+        c(0.379, 0.516, 0.561, 0.582, 0.331, 0.537),
+        emmeansTable3[['upper']],
+        tolerance = 1e-3
     )
 })
 
@@ -231,7 +240,7 @@ testthat::test_that("Analysis works with global weights", {
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(1337)
 
-    weights <- sample(1:10, 100, replace=TRUE)
+    weights <- sample(1:10, 100, replace = TRUE)
 
     df <- data.frame(
         dep = sample(letters[1:3], 100, replace = TRUE),
@@ -242,7 +251,7 @@ testthat::test_that("Analysis works with global weights", {
     )
     attr(df, "jmv-weights") <- weights
 
-    refLevels = list(list(var="dep", ref=letters[1]), list(var="factor", ref=LETTERS[20]))
+    refLevels = list(list(var = "dep", ref = letters[1]), list(var = "factor", ref = LETTERS[20]))
 
     r <- jmv::logRegMulti(
         df,
@@ -264,19 +273,23 @@ testthat::test_that("Analysis works with global weights", {
     coefTable <- r$models[[1]]$coef$asDF
     testthat::expect_equal(
         c(0.164, -0.189, NA, -0.112, -0.186, -0.567, NA, 0.447),
-        coefTable[['est']], tolerance = 1e-3
+        coefTable[['est']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
         c(0.14, 0.1, NA, 0.207, 0.154, 0.111, NA, 0.212),
-        coefTable[['se']], tolerance = 1e-3
+        coefTable[['se']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
         c(1.172, -1.896, NA, -0.539, -1.203, -5.088, NA, 2.104),
-        coefTable[['z']], tolerance = 1e-3
+        coefTable[['z']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
         c(0.241, 0.058, NA, 0.59, 0.229, 0, NA, 0.035),
-        coefTable[['p']], tolerance = 1e-3
+        coefTable[['p']],
+        tolerance = 1e-3
     )
 })
 
@@ -288,26 +301,29 @@ testthat::test_that('Model fit table contains sample size footnote', {
 
     r <- jmv::logRegMulti(
         df,
-        dep="y",
-        covs="x",
-        blocks=list(list("x")),
-        refLevels=list(list(var="y", ref="0"))
+        dep = "y",
+        covs = "x",
+        blocks = list(list("x")),
+        refLevels = list(list(var = "y", ref = "0"))
     )
 
     testthat::expect_match(r$modelFit$notes$n$note, "N=16")
 })
 
 params <- list(
-    list(refLevels = list(list(var="dep", ref="x"), list(var="factor", ref="X")), info = "Non-existing reference levels"),
+    list(
+        refLevels = list(list(var = "dep", ref = "x"), list(var = "factor", ref = "X")),
+        info = "Non-existing reference levels"
+    ),
     list(refLevels = NULL, info = "No reference levels"),
-    list(refLevels = list(list(var="wrong_factor", ref="A")), info = "Wrong variable name")
+    list(refLevels = list(list(var = "wrong_factor", ref = "A")), info = "Wrong variable name")
 )
 testthat::test_that('Reference level defaults to first level for faulty reference levels', {
     for (param in params) {
         # GIVEN a dataset with a factor with two levels
         df <- data.frame(
-            dep = rep(letters[1:3], length.out=10),
-            factor = rep(LETTERS[1:2], length.out=10),
+            dep = rep(letters[1:3], length.out = 10),
+            factor = rep(LETTERS[1:2], length.out = 10),
             stringsAsFactors = TRUE
         )
 
@@ -321,13 +337,11 @@ testthat::test_that('Reference level defaults to first level for faulty referenc
         )
 
         # THEN the reference level should default to the first level for the dep variable
-        testthat::expect_match(r$models[[1]]$coef$asDF$dep[1], "b - a", info=param$info)
+        testthat::expect_match(r$models[[1]]$coef$asDF$dep[1], "b - a", info = param$info)
         # THEN the reference level should default to the first level for the factor
-        testthat::expect_match(r$models[[1]]$coef$asDF$term[3], "B – A", info=param$info)
+        testthat::expect_match(r$models[[1]]$coef$asDF$term[3], "B – A", info = param$info)
         # AND a warning is added informing the user that the user defined reference level does not
         #   exist and therefore was changed to the first level
-        testthat::expect_match(r[[1]]$content, "reference level was not found", info=param$info)
+        testthat::expect_match(r[[1]]$content, "reference level was not found", info = param$info)
     }
 })
-
-

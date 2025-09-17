@@ -7,7 +7,7 @@ testthat::test_that("Correct reference levels are not updated", {
         stringsAsFactors = TRUE
     )
     # AND correctly defined reference levels
-    refLevels <- list(list(var="var", ref="a"))
+    refLevels <- list(list(var = "var", ref = "a"))
 
     # WHEN the reference levels are updated
     refLevelsUpdated <- jmv:::getReferenceLevels(df, "var", refLevels)
@@ -31,7 +31,7 @@ testthat::test_that("Reference levels are set correctly with no original referen
     refLevelsUpdated <- jmv:::getReferenceLevels(df, "var", refLevels)
 
     # THEN the updated reference levels are set to the first level
-    testthat::expect_equal(refLevelsUpdated$refLevels, list(list(var="var", ref="a")))
+    testthat::expect_equal(refLevelsUpdated$refLevels, list(list(var = "var", ref = "a")))
     # AND the reference levels are updated
     testthat::expect_true(length(refLevelsUpdated$changedVars) > 0)
 })
@@ -43,13 +43,13 @@ testthat::test_that("Reference levels are corrected with faulty orginal referenc
         stringsAsFactors = TRUE
     )
     # AND faulty original reference levels
-    refLevels <- list(list(var="var", ref="X"))
+    refLevels <- list(list(var = "var", ref = "X"))
 
     # WHEN the reference levels are updated
     refLevelsUpdated <- jmv:::getReferenceLevels(df, "var", refLevels)
 
     # THEN the updated reference levels are set to the first level
-    testthat::expect_equal(refLevelsUpdated$refLevels, list(list(var="var", ref="a")))
+    testthat::expect_equal(refLevelsUpdated$refLevels, list(list(var = "var", ref = "a")))
     # AND the reference levels are updated
     testthat::expect_true(length(refLevelsUpdated$changedVars) > 0)
 })
@@ -57,12 +57,12 @@ testthat::test_that("Reference levels are corrected with faulty orginal referenc
 testthat::test_that("Reference levels are added when level is not contained in original", {
     # GIVEN a dataframe with two factors
     df <- data.frame(
-        var1 = rep(letters[1:2], length.out=10),
-        var2 = rep(LETTERS[3:4], length.out=10),
+        var1 = rep(letters[1:2], length.out = 10),
+        var2 = rep(LETTERS[3:4], length.out = 10),
         stringsAsFactors = TRUE
     )
     # AND the original reference levels are only set for var1
-    refLevels <- list(list(var="var1", ref="a"))
+    refLevels <- list(list(var = "var1", ref = "a"))
 
     # WHEN the reference levels are updated
     refLevelsUpdated <- jmv:::getReferenceLevels(df, c("var1", "var2"), refLevels)
@@ -70,7 +70,7 @@ testthat::test_that("Reference levels are added when level is not contained in o
     # THEN the updated reference levels are set to the first level
     testthat::expect_equal(
         refLevelsUpdated$refLevels,
-        list(list(var="var1", ref="a"), list(var="var2", ref="C"))
+        list(list(var = "var1", ref = "a"), list(var = "var2", ref = "C"))
     )
     # AND the reference levels are updated
     testthat::expect_true(length(refLevelsUpdated$changedVars) > 0)

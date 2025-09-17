@@ -13,8 +13,8 @@ testthat::test_that('All options in the ttestPS work (sunny)', {
         check.names = FALSE
     )
     pairs <- list(
-        list(i1="time 1", i2="time 2"),
-        list(i1="measure 1", i2="measure 2")
+        list(i1 = "time 1", i2 = "time 2"),
+        list(i1 = "measure 1", i2 = "measure 2")
     )
 
     r <- jmv::ttestPS(
@@ -87,9 +87,9 @@ testthat::test_that('Matched rank biserial correlation is correct', {
         before = c(20, 22, 19, 20, 22, 18, 24, 20, 25),
         after = c(38, 37, 33, 29, 14, 12, 20, 22, 25)
     )
-    pairs <- list(list(i1='before', i2='after'))
+    pairs <- list(list(i1 = 'before', i2 = 'after'))
 
-    r <- jmv::ttestPS(df, pairs, wilcoxon=TRUE, students=FALSE, effectSize=TRUE)
+    r <- jmv::ttestPS(df, pairs, wilcoxon = TRUE, students = FALSE, effectSize = TRUE)
 
     # Test rank biserial correlation
     ttestTable <- r$ttest$asDF

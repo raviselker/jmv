@@ -27,7 +27,8 @@ testthat::test_that('All options in the reliability work (sunny)', {
     # Test item statistics table
     itemsTable <- r$items$asDF
     testthat::expect_equal(
-        c('x 1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'), itemsTable[['name']]
+        c('x 1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'),
+        itemsTable[['name']]
     )
     testthat::expect_equal(
         c(4.936, 6.088, 2.25, 3.061, 4.341, 2.186, 4.186, 5.527, 5.374),
@@ -57,7 +58,7 @@ testthat::test_that('All options in the reliability work (sunny)', {
 })
 
 testthat::test_that('Analysis does not run (yet) with fewer than two variables', {
-    df <- data.frame(y1 = c(4,4,3,4,8,0,9,8,8,6,0,3))
+    df <- data.frame(y1 = c(4, 4, 3, 4, 8, 0, 9, 8, 8, 6, 0, 3))
     r <- jmv::reliability(df, c("y1"))
 
     testthat::expect_true(is.na(r$scale$asDF$alpha))
@@ -65,13 +66,13 @@ testthat::test_that('Analysis does not run (yet) with fewer than two variables',
 
 testthat::test_that('Error is thrown for infinite values', {
     df <- data.frame(
-        y1 = c(4,4,3,4,8,0,9,8,8,6,0,3),
+        y1 = c(4, 4, 3, 4, 8, 0, 9, 8, 8, 6, 0, 3),
         inf = c(Inf, Inf, -Inf, 2, 4, 2, 1.2, 3, 4, 2.3, 5.3, 2.23)
     )
 
     testthat::expect_error(
         jmv::reliability(df, c("y1", "inf")),
         "Item 'inf' contains infinite values",
-        fixed=TRUE
+        fixed = TRUE
     )
 })

@@ -3,7 +3,8 @@ emptyClass <- R6::R6Class(
     inherit = emptyBase,
     private = list(
         .run = function() {
-        }),
+        }
+    ),
     public = list(
         asSource = function() ''
     )

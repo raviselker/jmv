@@ -36,7 +36,9 @@ testthat::test_that('All options in the ttestOneS work (sunny)', {
     testthat::expect_equal(c(0.024, 17.082, 1.432), ttestTable[['ciles[stud]']], tolerance = 1e-3)
     testthat::expect_equal(c(0.42, 22.643, 2.056), ttestTable[['ciues[stud]']], tolerance = 1e-3)
     testthat::expect_equal(
-        c(1.163, 2.203e+126, 5.448e+28), ttestTable[['stat[bf]']], tolerance = 1e-3
+        c(1.163, 2.203e+126, 5.448e+28),
+        ttestTable[['stat[bf]']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(c(0, 0, 0), ttestTable[['err[bf]']], tolerance = 1e-3)
     testthat::expect_equal(c(3117, 5050, 5016), ttestTable[['stat[wilc]']], tolerance = 1e-3)
@@ -69,7 +71,7 @@ testthat::test_that('Matched rank biserial correlation is correct', {
     )
     df$dif <- df$after - df$before
 
-    r <- jmv::ttestOneS(df, vars = "dif", wilcoxon=TRUE, students=FALSE, effectSize=TRUE)
+    r <- jmv::ttestOneS(df, vars = "dif", wilcoxon = TRUE, students = FALSE, effectSize = TRUE)
 
     # Test rank biserial correlation
     ttestTable <- r$ttest$asDF
@@ -83,7 +85,13 @@ testthat::test_that('Matched rank biserial correlation works with non zero test 
     df <- data.frame(x = c(1, 5, 3, 4, 4, 2, 3, 2, 1, 4, 5, 4, 3, 1))
 
     r <- jmv::ttestOneS(
-        df, testValue=3, vars="x", hypothesis="gt", wilcoxon=TRUE, students=FALSE, effectSize=TRUE
+        df,
+        testValue = 3,
+        vars = "x",
+        hypothesis = "gt",
+        wilcoxon = TRUE,
+        students = FALSE,
+        effectSize = TRUE
     )
 
     # Test rank biserial correlation

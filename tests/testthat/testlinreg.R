@@ -7,7 +7,7 @@ testthat::test_that('All options in the linreg work (sunny)', {
         `dep var` = rnorm(100),
         `cov 1` = rnorm(100),
         `cov 2` = rnorm(100),
-        `facto r` = sample(LETTERS[1:3], 100, replace=TRUE),
+        `facto r` = sample(LETTERS[1:3], 100, replace = TRUE),
         stringsAsFactors = TRUE,
         check.names = FALSE
     )
@@ -16,7 +16,7 @@ testthat::test_that('All options in the linreg work (sunny)', {
     covs <- c("cov 1", "cov 2")
     factors <- "facto r"
     blocks = list(list("cov 1", "cov 2", "facto r"))
-    refLevels = list(list(var="facto r", ref="A"))
+    refLevels = list(list(var = "facto r", ref = "A"))
 
     r <- jmv::linReg(
         data,
@@ -70,34 +70,53 @@ testthat::test_that('All options in the linreg work (sunny)', {
     # Test model coefficients table
     coefTable <- r$models[[1]]$coef$asDF
     testthat::expect_equal(
-        c('Intercept', 'cov 1', 'cov 2', 'facto r:', 'B – A', 'C – A'), coefTable[['term']]
+        c('Intercept', 'cov 1', 'cov 2', 'facto r:', 'B – A', 'C – A'),
+        coefTable[['term']]
     )
     testthat::expect_equal(
-        c(0.241, -0.105, -0.043, NA, 0.155, -0.137), coefTable[['est']], tolerance = 1e-3
+        c(0.241, -0.105, -0.043, NA, 0.155, -0.137),
+        coefTable[['est']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.2, 0.108, 0.107, NA, 0.286, 0.261), coefTable[['se']], tolerance = 1e-3
+        c(0.2, 0.108, 0.107, NA, 0.286, 0.261),
+        coefTable[['se']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(-0.155, -0.32, -0.255, NA, -0.412, -0.655), coefTable[['lower']], tolerance = 1e-3
+        c(-0.155, -0.32, -0.255, NA, -0.412, -0.655),
+        coefTable[['lower']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.638, 0.109, 0.17, NA, 0.723, 0.382), coefTable[['upper']], tolerance = 1e-3
+        c(0.638, 0.109, 0.17, NA, 0.723, 0.382),
+        coefTable[['upper']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(1.208, -0.973, -0.398, NA, 0.543, -0.524), coefTable[['t']], tolerance = 1e-3
+        c(1.208, -0.973, -0.398, NA, 0.543, -0.524),
+        coefTable[['t']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.23, 0.333, 0.691, NA, 0.589, 0.601), coefTable[['p']], tolerance = 1e-3
+        c(0.23, 0.333, 0.691, NA, 0.589, 0.601),
+        coefTable[['p']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(NA, -0.099, -0.042, NA, 0.146, -0.128), coefTable[['stdEst']], tolerance = 1e-3
+        c(NA, -0.099, -0.042, NA, 0.146, -0.128),
+        coefTable[['stdEst']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(NA, -0.302, -0.252, NA, -0.387, -0.615), coefTable[['stdEstLower']], tolerance = 1e-3
+        c(NA, -0.302, -0.252, NA, -0.387, -0.615),
+        coefTable[['stdEstLower']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(NA, 0.103, 0.168, NA, 0.679, 0.358), coefTable[['stdEstUpper']], tolerance = 1e-3
+        c(NA, 0.103, 0.168, NA, 0.679, 0.358),
+        coefTable[['stdEstUpper']],
+        tolerance = 1e-3
     )
 
     # Test cook's distance summary table
@@ -110,7 +129,7 @@ testthat::test_that('All options in the linreg work (sunny)', {
 
     # Test Mahalanobis distance summary table
     mahalTable <- r$models[[1]]$dataSummary$mahal$asDF
-    testthat::expect_equal(1.98,  mahalTable[['mean']], tolerance = 1e-3)
+    testthat::expect_equal(1.98, mahalTable[['mean']], tolerance = 1e-3)
     testthat::expect_equal(1.269, mahalTable[['median']], tolerance = 1e-3)
     testthat::expect_equal(2.329, mahalTable[['sd']], tolerance = 1e-3)
     testthat::expect_equal(0.019, mahalTable[['min']], tolerance = 1e-3)
@@ -180,7 +199,7 @@ testthat::test_that('Test that basic linear regression works', {
     covs <- c("var1", "var 2", "var3")
     blocks = list(list("var1", "var 2", "var3"))
 
-    linreg <- jmv::linReg(data, dep=!!dep, covs=!!covs, blocks=blocks, stdEst = TRUE)
+    linreg <- jmv::linReg(data, dep = !!dep, covs = !!covs, blocks = blocks, stdEst = TRUE)
 
     modelFit <- linreg$modelFit$asDF
     coef <- linreg$models[[1]]$coef$asDF
@@ -219,7 +238,12 @@ testthat::test_that('Test that basic linear regression with blocks works', {
     blocks = list(list("var1", "var 2", "var3", c("var1", "var 2")))
 
     linreg <- jmv::linReg(
-        data, dep=!!dep, covs=!!covs, blocks=blocks, stdEst = TRUE, ciStdEst = TRUE
+        data,
+        dep = !!dep,
+        covs = !!covs,
+        blocks = blocks,
+        stdEst = TRUE,
+        ciStdEst = TRUE
     )
 
     coef <- linreg$models[[1]]$coef$asDF
@@ -231,7 +255,7 @@ testthat::test_that('Test that basic linear regression with blocks works', {
 })
 
 testthat::test_that('Test different intercept codings', {
-    data('ToothGrowth', package='datasets')
+    data('ToothGrowth', package = 'datasets')
     data <- ToothGrowth
     data$dose <- factor(data$dose)
 
@@ -239,13 +263,19 @@ testthat::test_that('Test different intercept codings', {
     factors <- c("dose", "supp")
     blocks = list(list("dose", "supp"))
     refLevels = list(
-        list(var="supp", ref="OJ"),
-        list(var="dose", ref="0.5")
+        list(var = "supp", ref = "OJ"),
+        list(var = "dose", ref = "0.5")
     )
 
     linreg <- jmv::linReg(
-        data, dep=!!dep, factors=!!factors, blocks=blocks, refLevels=refLevels,
-        emMeans=~ supp, emmTables=TRUE, emmPlots=FALSE
+        data,
+        dep = !!dep,
+        factors = !!factors,
+        blocks = blocks,
+        refLevels = refLevels,
+        emMeans = ~supp,
+        emmTables = TRUE,
+        emmPlots = FALSE
     )
     coef <- linreg$models[[1]]$coef$asDF
     testthat::expect_equal(12.455, coef$est[1], tolerance = 1e-3)
@@ -255,7 +285,7 @@ testthat::test_that('Test different intercept codings', {
 })
 
 testthat::test_that('Test that grand mean intercept works', {
-    data('ToothGrowth', package='datasets')
+    data('ToothGrowth', package = 'datasets')
     data <- ToothGrowth
     data$dose <- factor(data$dose)
 
@@ -263,12 +293,17 @@ testthat::test_that('Test that grand mean intercept works', {
     factors <- c("dose", "supp")
     blocks = list(list("dose", "supp"))
     refLevels = list(
-        list(var="supp", ref="OJ"),
-        list(var="dose", ref="0.5")
+        list(var = "supp", ref = "OJ"),
+        list(var = "dose", ref = "0.5")
     )
 
     linreg <- jmv::linReg(
-        data, dep=!!dep, factors=!!factors, blocks=blocks, refLevels=refLevels, intercept='grandMean'
+        data,
+        dep = !!dep,
+        factors = !!factors,
+        blocks = blocks,
+        refLevels = refLevels,
+        intercept = 'grandMean'
     )
 
     coef <- linreg$models[[1]]$coef
@@ -303,10 +338,10 @@ testthat::test_that('Cooks summary in linreg works', {
 
     linreg <- jmv::linReg(
         data,
-        dep=!!dep,
-        covs=!!covs,
-        blocks=blocks,
-        cooks=TRUE
+        dep = !!dep,
+        covs = !!covs,
+        blocks = blocks,
+        cooks = TRUE
     )
 
     cooksTable <- linreg$models[[1]]$dataSummary$cooks$asDF
@@ -343,10 +378,10 @@ testthat::test_that('Mahalanobis summary in linreg works', {
 
     linreg <- jmv::linReg(
         data,
-        dep=!!dep,
-        covs=!!covs,
-        blocks=blocks,
-        mahal=TRUE
+        dep = !!dep,
+        covs = !!covs,
+        blocks = blocks,
+        mahal = TRUE
     )
 
     mahalTable <- linreg$models[[1]]$dataSummary$mahal$asDF
@@ -403,10 +438,10 @@ testthat::test_that('emmeans table in linreg works with covariate with only two 
 
     linreg <- jmv::linReg(
         data,
-        dep=!!dep,
-        covs=!!covs,
-        blocks=blocks,
-        emMeans = ~var1:var2,
+        dep = !!dep,
+        covs = !!covs,
+        blocks = blocks,
+        emMeans = ~ var1:var2,
         emmTables = TRUE
     )
 
@@ -434,15 +469,14 @@ testthat::test_that("Analysis shows warning note on singular fit", {
     dep <- "y"
     factors <- c("x1", "x2")
     blocks = list(list("x1", "x2", c("x1", "x2")))
-    refLevels = list(list(var="x1", ref="a"),
-                     list(var="x2", ref="a"))
+    refLevels = list(list(var = "x1", ref = "a"), list(var = "x2", ref = "a"))
 
     r <- jmv::linReg(
         data,
-        dep=!!dep,
-        factors=!!factors,
-        blocks=blocks,
-        refLevels=refLevels,
+        dep = !!dep,
+        factors = !!factors,
+        blocks = blocks,
+        refLevels = refLevels,
         anova = TRUE,
         collin = TRUE
     )
@@ -467,9 +501,9 @@ testthat::test_that("Analysis works for covariate with one unique value", {
 
     r <- jmv::linReg(
         df,
-        dep="y",
-        covs="x",
-        blocks=list(list("x")),
+        dep = "y",
+        covs = "x",
+        blocks = list(list("x")),
     )
 
     coef <- r$models[[1]]$coef$asDF
@@ -490,10 +524,10 @@ testthat::test_that("Analysis throws error for factor with one level", {
         {
             jmv::linReg(
                 df,
-                dep="y",
-                factors="x",
-                blocks=list(list("x")),
-                refLevels = list(list(var="x", ref="1"))
+                dep = "y",
+                factors = "x",
+                blocks = list(list("x")),
+                refLevels = list(list(var = "x", ref = "1"))
             )
         },
         regexp = "needs to have at least 2 levels"
@@ -509,19 +543,19 @@ testthat::test_that("Analysis works with global weights", {
     df <- data.frame(
         dep = rnorm(100),
         cov = rnorm(100),
-        factor = factor(sample(LETTERS[1:3], 100, replace=TRUE))
+        factor = factor(sample(LETTERS[1:3], 100, replace = TRUE))
     )
     attr(df, "jmv-weights") <- weights
 
-    refLevels = list(list(var="factor", ref="A"))
+    refLevels = list(list(var = "factor", ref = "A"))
 
     r <- jmv::linReg(
         df,
-        dep="dep",
-        covs="cov",
-        factors="factor",
-        blocks=list(list("cov", "factor")),
-        refLevels=refLevels,
+        dep = "dep",
+        covs = "cov",
+        factors = "factor",
+        blocks = list(list("cov", "factor")),
+        refLevels = refLevels,
     )
 
     coef <- r$models[[1]]$coef$asDF
@@ -539,19 +573,19 @@ testthat::test_that("Analysis works with legacy weights", {
         weights = abs(rnorm(100)),
         dep = rnorm(100),
         cov = rnorm(100),
-        factor = factor(sample(LETTERS[1:3], 100, replace=TRUE))
+        factor = factor(sample(LETTERS[1:3], 100, replace = TRUE))
     )
 
-    refLevels = list(list(var="factor", ref="A"))
+    refLevels = list(list(var = "factor", ref = "A"))
 
     r <- jmv::linReg(
         df,
-        dep="dep",
-        covs="cov",
-        factors="factor",
-        weights="weights",
-        blocks=list(list("cov", "factor")),
-        refLevels=refLevels,
+        dep = "dep",
+        covs = "cov",
+        factors = "factor",
+        weights = "weights",
+        blocks = list(list("cov", "factor")),
+        refLevels = refLevels,
     )
 
     coef <- r$models[[1]]$coef
@@ -578,10 +612,10 @@ testthat::test_that("Analysis throws error with negative weights", {
         {
             jmv::linReg(
                 df,
-                dep="dep",
-                covs="cov",
-                weights="weights",
-                blocks=list(list("cov")),
+                dep = "dep",
+                covs = "cov",
+                weights = "weights",
+                blocks = list(list("cov")),
             )
         },
         regexp = "Negative weights are not permitted"
@@ -597,8 +631,8 @@ testthat::test_that('Emmeans work with nuisance parameters (no interactions)', {
         dep = rnorm(100),
         cov1 = rnorm(100),
         cov2 = rnorm(100),
-        factor1 = sample(letters[1:3], 100, replace=TRUE),
-        factor2 = sample(LETTERS[1:2], 100, replace=TRUE),
+        factor1 = sample(letters[1:3], 100, replace = TRUE),
+        factor2 = sample(LETTERS[1:2], 100, replace = TRUE),
         stringsAsFactors = TRUE
     )
 
@@ -607,8 +641,8 @@ testthat::test_that('Emmeans work with nuisance parameters (no interactions)', {
     factors <- paste0("factor", 1:2)
     blocks = list(as.list(c(covs, factors)))
     refLevels = list(
-        list(var=factors[1], ref="a"),
-        list(var=factors[2], ref="A")
+        list(var = factors[1], ref = "a"),
+        list(var = factors[2], ref = "A")
     )
 
     r <- jmv::linReg(
@@ -669,8 +703,8 @@ testthat::test_that('Emmeans work with nuisance parameters (with interactions)',
         dep = rnorm(100),
         cov1 = rnorm(100),
         cov2 = rnorm(100),
-        factor1 = sample(letters[1:3], 100, replace=TRUE),
-        factor2 = sample(LETTERS[1:2], 100, replace=TRUE),
+        factor1 = sample(letters[1:3], 100, replace = TRUE),
+        factor2 = sample(LETTERS[1:2], 100, replace = TRUE),
         stringsAsFactors = TRUE
     )
 
@@ -679,8 +713,8 @@ testthat::test_that('Emmeans work with nuisance parameters (with interactions)',
     factors <- c("factor1", "factor2")
     blocks = list(list("cov1", "cov2", "factor1", "factor2", c("cov1", "factor1")))
     refLevels = list(
-        list(var=factors[1], ref="a"),
-        list(var=factors[2], ref="A")
+        list(var = factors[1], ref = "a"),
+        list(var = factors[2], ref = "A")
     )
 
     r <- jmv::linReg(
@@ -738,9 +772,9 @@ testthat::test_that('Model fit table contains sample size footnote', {
 
     r <- jmv::linReg(
         df,
-        dep="y",
-        covs="x",
-        blocks=list(list("x")),
+        dep = "y",
+        covs = "x",
+        blocks = list(list("x")),
     )
 
     testthat::expect_match(r$modelFit$notes$n$note, "N=13")
@@ -748,16 +782,16 @@ testthat::test_that('Model fit table contains sample size footnote', {
 
 
 params <- list(
-    list(refLevels = list(list(var="factor", ref="C")), info = "Non-existing reference level"),
+    list(refLevels = list(list(var = "factor", ref = "C")), info = "Non-existing reference level"),
     list(refLevels = NULL, info = "No reference levels"),
-    list(refLevels = list(list(var="wrong_factor", ref="A")), info = "Wrong variable name")
+    list(refLevels = list(list(var = "wrong_factor", ref = "A")), info = "Wrong variable name")
 )
 testthat::test_that('Reference level defaults to first level for faulty reference levels', {
     for (param in params) {
         # GIVEN a dataset with a factor with two levels
         df <- data.frame(
             dep = 1:10,
-            factor = rep(LETTERS[1:2], length.out=10),
+            factor = rep(LETTERS[1:2], length.out = 10),
             stringsAsFactors = TRUE
         )
 
@@ -771,9 +805,9 @@ testthat::test_that('Reference level defaults to first level for faulty referenc
         )
 
         # THEN the reference level should default to the first level
-        testthat::expect_match(r$models[[1]]$coef$asDF$term[3], "B – A", info=param$info)
+        testthat::expect_match(r$models[[1]]$coef$asDF$term[3], "B – A", info = param$info)
         # AND a warning is added informing the user that the user defined reference level does not
         #   exist and therefore was changed to the first level
-        testthat::expect_match(r[[1]]$content, "reference level was not found", info=param$info)
+        testthat::expect_match(r[[1]]$content, "reference level was not found", info = param$info)
     }
 })

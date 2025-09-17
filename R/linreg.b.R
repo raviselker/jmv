@@ -1,4 +1,3 @@
-
 #' @importFrom jmvcore .
 linRegClass <- R6::R6Class(
     "linRegClass",
@@ -6,20 +5,17 @@ linRegClass <- R6::R6Class(
     #### Active bindings ----
     active = list(
         dataProcessed = function() {
-            if (is.null(private$.dataProcessed))
-                private$.dataProcessed <- private$.cleanData()
+            if (is.null(private$.dataProcessed)) private$.dataProcessed <- private$.cleanData()
 
             return(private$.dataProcessed)
         },
         weights = function() {
-            if (is.null(private$.weights))
-                private$.weights <- private$.computeWeights()
+            if (is.null(private$.weights)) private$.weights <- private$.computeWeights()
 
             return(private$.weights)
         },
         models = function() {
-            if (is.null(private$.models))
-                private$.models <- private$.computeModels()
+            if (is.null(private$.models)) private$.models <- private$.computeModels()
 
             return(private$.models)
         },
@@ -30,38 +26,32 @@ linRegClass <- R6::R6Class(
             return(private$.modelsScaled)
         },
         nModels = function() {
-            if (is.null(private$.nModels))
-                private$.nModels <- length(self$options$blocks)
+            if (is.null(private$.nModels)) private$.nModels <- length(self$options$blocks)
 
             return(private$.nModels)
         },
         residuals = function() {
-            if (is.null(private$.residuals))
-                private$.residuals <- private$.computeResiduals()
+            if (is.null(private$.residuals)) private$.residuals <- private$.computeResiduals()
 
             return(private$.residuals)
         },
         fitted = function() {
-            if (is.null(private$.fitted))
-                private$.fitted <- private$.computeFitted()
+            if (is.null(private$.fitted)) private$.fitted <- private$.computeFitted()
 
             return(private$.fitted)
         },
         predicted = function() {
-            if (is.null(private$.predicted))
-                private$.predicted <- private$.computePredicted()
+            if (is.null(private$.predicted)) private$.predicted <- private$.computePredicted()
 
             return(private$.predicted)
         },
         cooks = function() {
-            if (is.null(private$.cooks))
-                private$.cooks <- private$.computeCooks()
+            if (is.null(private$.cooks)) private$.cooks <- private$.computeCooks()
 
             return(private$.cooks)
         },
         mahal = function() {
-            if (is.null(private$.mahal))
-                private$.mahal <- private$.computeMahal()
+            if (is.null(private$.mahal)) private$.mahal <- private$.computeMahal()
 
             return(private$.mahal)
         },
@@ -78,20 +68,17 @@ linRegClass <- R6::R6Class(
             return(private$.anovaModelTerms)
         },
         AIC = function() {
-            if (is.null(private$.AIC))
-                private$.AIC <- private$.computeAIC()
+            if (is.null(private$.AIC)) private$.AIC <- private$.computeAIC()
 
             return(private$.AIC)
         },
         BIC = function() {
-            if (is.null(private$.BIC))
-                private$.BIC <- private$.computeBIC()
+            if (is.null(private$.BIC)) private$.BIC <- private$.computeBIC()
 
             return(private$.BIC)
         },
         CICoefEst = function() {
-            if (is.null(private$.CICoefEst))
-                private$.CICoefEst <- private$.computeCICoefEst()
+            if (is.null(private$.CICoefEst)) private$.CICoefEst <- private$.computeCICoefEst()
 
             return(private$.CICoefEst)
         },
@@ -102,8 +89,7 @@ linRegClass <- R6::R6Class(
             return(private$.CICoefEstScaled)
         },
         VIF = function() {
-            if (is.null(private$.VIF))
-                private$.VIF <- private$.computeVIF()
+            if (is.null(private$.VIF)) private$.VIF <- private$.computeVIF()
 
             return(private$.VIF)
         },
@@ -114,15 +100,16 @@ linRegClass <- R6::R6Class(
             return(private$.durbinWatson)
         },
         emMeans = function() {
-            if (is.null(private$.emMeans))
-                private$.emMeans <- private$.computeEmMeans()
+            if (is.null(private$.emMeans)) private$.emMeans <- private$.computeEmMeans()
 
             return(private$.emMeans)
         },
         refLevels = function() {
             if (is.null(private$.refLevels)) {
                 refLevels <- getReferenceLevels(
-                    self$data, self$options$factors, self$options$refLevels
+                    self$data,
+                    self$options$factors,
+                    self$options$refLevels
                 )
                 private$.refLevels <- refLevels$refLevels
 
@@ -176,11 +163,14 @@ linRegClass <- R6::R6Class(
             private$.initOutputs()
         },
         .run = function() {
-            if (is.null(self$options$dep) || self$nModels < 1 || length(self$options$blocks[[1]]) == 0)
+            if (
+                is.null(self$options$dep) ||
+                    self$nModels < 1 ||
+                    length(self$options$blocks[[1]]) == 0
+            )
                 return()
 
-            if (any(unlist(private$.getIsAliased())))
-                setSingularityWarning(self)
+            if (any(unlist(private$.getIsAliased()))) setSingularityWarning(self)
 
             private$.populateModelFitTable()
             private$.populateModelCompTable()
@@ -203,19 +193,16 @@ linRegClass <- R6::R6Class(
 
         #### Compute results ----
         .computeModels = function(modelNo = NULL, scaled = FALSE) {
-            if (scaled)
-                data <- private$.scaleData(self$dataProcessed)
-            else
+            if (scaled) data <- private$.scaleData(self$dataProcessed) else
                 data <- self$dataProcessed
 
             formulas <- private$.formulas()
 
-            if (is.numeric(modelNo))
-                formulas <- formulas[modelNo]
+            if (is.numeric(modelNo)) formulas <- formulas[modelNo]
 
             models <- list()
             for (i in seq_along(formulas))
-                models[[i]] <- lm(formulas[[i]], data=data, weights=self$weights)
+                models[[i]] <- lm(formulas[[i]], data = data, weights = self$weights)
 
             return(models)
         },
@@ -223,10 +210,9 @@ linRegClass <- R6::R6Class(
             legacy_weights <- self$options$weights
             global_weights <- attr(self$data, "jmv-weights")
 
-            if (is.null(legacy_weights) && is.null(global_weights))
-                return()
+            if (is.null(legacy_weights) && is.null(global_weights)) return()
 
-            if (! is.null(legacy_weights)) {
+            if (!is.null(legacy_weights)) {
                 weights <- self$dataProcessed[[jmvcore::toB64(legacy_weights)]]
             } else {
                 weights <- self$dataProcessed[[".WEIGHTS"]]
@@ -235,7 +221,7 @@ linRegClass <- R6::R6Class(
             if (any(weights < 0)) {
                 jmvcore::reject(
                     .("'{var}' contains negative values. Negative weights are not permitted."),
-                    var=legacy_weights
+                    var = legacy_weights
                 )
             }
 
@@ -246,7 +232,9 @@ linRegClass <- R6::R6Class(
             for (i in seq_along(self$models)) {
                 suppressMessages({
                     anovaTerms[[i]] <- car::Anova(
-                        self$models[[i]], type=3, singular.ok=TRUE
+                        self$models[[i]],
+                        type = 3,
+                        singular.ok = TRUE
                     )
                 })
             }
@@ -255,30 +243,26 @@ linRegClass <- R6::R6Class(
         },
         .computeResiduals = function() {
             res <- list()
-            for (i in seq_along(self$models))
-                res[[i]] <- self$models[[i]]$residuals
+            for (i in seq_along(self$models)) res[[i]] <- self$models[[i]]$residuals
 
             return(res)
         },
         .computeFitted = function() {
             fitted <- list()
-            for (i in seq_along(self$models))
-                fitted[[i]] <- self$models[[i]]$fitted.values
+            for (i in seq_along(self$models)) fitted[[i]] <- self$models[[i]]$fitted.values
 
             return(fitted)
         },
         .computePredicted = function() {
-            data <- private$.cleanData(naSkip=jmvcore::toB64(self$options$dep))
+            data <- private$.cleanData(naSkip = jmvcore::toB64(self$options$dep))
             fitted <- list()
-            for (i in seq_along(self$models))
-                fitted[[i]] <- predict(self$models[[i]], data)
+            for (i in seq_along(self$models)) fitted[[i]] <- predict(self$models[[i]], data)
 
             return(fitted)
         },
         .computeCooks = function() {
             cooks <- list()
-            for (i in seq_along(self$models))
-                cooks[[i]] <- stats::cooks.distance(self$models[[i]])
+            for (i in seq_along(self$models)) cooks[[i]] <- stats::cooks.distance(self$models[[i]])
 
             return(cooks)
         },
@@ -306,7 +290,9 @@ linRegClass <- R6::R6Class(
                 # skip if number of variables less than 2
                 if (length(covs) >= 2) {
                     mahalChiSq <- stats::mahalanobis(
-                        data[, covs], colMeans(data[, covs]), cov(data[, covs])
+                        data[, covs],
+                        colMeans(data[, covs]),
+                        cov(data[, covs])
                     )
                     mahal[[i]] <- data.frame(
                         chisq = mahalChiSq,
@@ -320,23 +306,18 @@ linRegClass <- R6::R6Class(
         },
         .computeAIC = function() {
             AIC <- list()
-            for (i in seq_along(self$models))
-                AIC[[i]] <- stats::AIC(self$models[[i]])
+            for (i in seq_along(self$models)) AIC[[i]] <- stats::AIC(self$models[[i]])
 
             return(AIC)
         },
         .computeBIC = function() {
             BIC <- list()
-            for (i in seq_along(self$models))
-                BIC[[i]] <- stats::BIC(self$models[[i]])
+            for (i in seq_along(self$models)) BIC[[i]] <- stats::BIC(self$models[[i]])
 
             return(BIC)
         },
         .computeCICoefEst = function(scaled = FALSE) {
-            if (scaled)
-                models <- self$modelsScaled
-            else
-                models <- self$models
+            if (scaled) models <- self$modelsScaled else models <- self$models
 
             CICoefEst <- list()
             for (i in seq_along(models))
@@ -349,7 +330,7 @@ linRegClass <- R6::R6Class(
 
             VIF <- list()
             for (i in seq_along(self$models)) {
-                if ( ! private$.getIsAliased()[[i]] && length(modelTerms[[i]]) > 1 ) {
+                if (!private$.getIsAliased()[[i]] && length(modelTerms[[i]]) > 1) {
                     VIF[[i]] <- car::vif(self$models[[i]])
                 } else {
                     VIF[[i]] <- c(VIF, list(NULL))
@@ -380,7 +361,7 @@ linRegClass <- R6::R6Class(
                 for (j in seq_along(emMeansTerms)) {
                     term <- emMeansTerms[[j]]
 
-                    if ( ! is.null(term) && all(term %in% terms)) {
+                    if (!is.null(term) && all(term %in% terms)) {
                         termB64 <- jmvcore::toB64(term)
 
                         FUN <- list()
@@ -389,27 +370,25 @@ linRegClass <- R6::R6Class(
                                 if (forPlot && k == 1) {
                                     FUN[[termB64[k]]] <- function(x) pretty(x, 25)
                                 } else {
-                                    FUN[[termB64[k]]] <- function(x) c(mean(x)-sd(x), mean(x), mean(x)+sd(x))
+                                    FUN[[termB64[k]]] <- function(x)
+                                        c(mean(x) - sd(x), mean(x), mean(x) + sd(x))
                                 }
                             }
                         }
 
                         formula <- formula(paste('~', jmvcore::composeTerm(termB64)))
 
-                        if (self$options$emmWeights)
-                            weights <- 'equal'
-                        else
-                            weights <- 'cells'
+                        if (self$options$emmWeights) weights <- 'equal' else weights <- 'cells'
 
                         suppressMessages({
-                            emmeans::emm_options(sep=",", parens="a^", cov.keep=1)
+                            emmeans::emm_options(sep = ",", parens = "a^", cov.keep = 1)
 
                             mm <- try(
                                 emmeans::emmeans(
                                     model,
                                     formula,
                                     cov.reduce = FUN,
-                                    options = list(level=self$options$ciWidthEmm / 100),
+                                    options = list(level = self$options$ciWidthEmm / 100),
                                     weights = weights,
                                     data = self$dataProcessed,
                                     non.nuis = all.vars(formula),
@@ -433,12 +412,13 @@ linRegClass <- R6::R6Class(
             table <- self$results$modelFit
 
             for (i in seq_along(self$options$blocks))
-                table$addRow(rowKey=i, values=list(model = i))
+                table$addRow(rowKey = i, values = list(model = i))
 
             table$setNote(
                 "n",
                 jmvcore::format(
-                    .("Models estimated using sample size of N={n}"), n="..."
+                    .("Models estimated using sample size of N={n}"),
+                    n = "..."
                 )
             )
         },
@@ -451,16 +431,16 @@ linRegClass <- R6::R6Class(
                 return()
             }
 
-            for (i in 1:(length(blocks)-1))
-                table$addRow(rowKey=i, values=list(model1 = i, model2 = as.integer(i+1)))
+            for (i in 1:(length(blocks) - 1))
+                table$addRow(rowKey = i, values = list(model1 = i, model2 = as.integer(i + 1)))
         },
         .initModelSpec = function() {
             groups <- self$results$models
 
             for (i in seq_along(self$options$blocks)) {
-                groups$addItem(key=i)
-                group <- groups$get(key=i)
-                group$setTitle(paste("Model",i))
+                groups$addItem(key = i)
+                group <- groups$get(key = i)
+                group$setTitle(paste("Model", i))
             }
         },
         .initAnovaTables = function() {
@@ -468,15 +448,17 @@ linRegClass <- R6::R6Class(
             termsAll <- private$.getModelTerms()
 
             for (i in seq_along(termsAll)) {
-
-                table <- groups$get(key=i)$anova
+                table <- groups$get(key = i)$anova
                 terms <- termsAll[[i]]
 
                 for (j in seq_along(terms))
-                    table$addRow(rowKey=paste0(terms[[j]]), values=list(term = jmvcore::stringifyTerm(terms[[j]])))
+                    table$addRow(
+                        rowKey = paste0(terms[[j]]),
+                        values = list(term = jmvcore::stringifyTerm(terms[[j]]))
+                    )
 
-                table$addRow(rowKey='.RES', values=list(term = .('Residuals')))
-                table$addFormat(col=1, rowKey='.RES', format=Cell.BEGIN_GROUP)
+                table$addRow(rowKey = '.RES', values = list(term = .('Residuals')))
+                table$addFormat(col = 1, rowKey = '.RES', format = Cell.BEGIN_GROUP)
 
                 table$setNote("ss", .("Type 3 sum of squares"))
             }
@@ -489,35 +471,43 @@ linRegClass <- R6::R6Class(
             rowNamesModel <- private$.getRowNamesModel()
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$coef
+                table <- groups$get(key = i)$coef
 
                 ciWidth <- self$options$ciWidth
-                ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth=ciWidth)
+                ciWidthTitle <- jmvcore::format(
+                    .('{ciWidth}% Confidence Interval'),
+                    ciWidth = ciWidth
+                )
                 table$getColumn('lower')$setSuperTitle(ciWidthTitle)
                 table$getColumn('upper')$setSuperTitle(ciWidthTitle)
 
                 ciWidthStdEst <- self$options$ciWidthStdEst
-                ciWidthStdEstTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth=ciWidthStdEst)
+                ciWidthStdEstTitle <- jmvcore::format(
+                    .('{ciWidth}% Confidence Interval'),
+                    ciWidth = ciWidthStdEst
+                )
                 table$getColumn('stdEstLower')$setSuperTitle(ciWidthStdEstTitle)
                 table$getColumn('stdEstUpper')$setSuperTitle(ciWidthStdEstTitle)
 
                 coefTerms <- rowNamesModel[[i]]
 
-                table$addRow(rowKey="`(Intercept)`", values=list(term = .("Intercept")))
+                table$addRow(rowKey = "`(Intercept)`", values = list(term = .("Intercept")))
 
-                if (! is.null(weights)) {
+                if (!is.null(weights)) {
                     private$.weightsName <- weights
                     table$setNote(
                         "weights",
-                        jmvcore::format(.("Weighted by '{varName}'"), varName=weights)
+                        jmvcore::format(.("Weighted by '{varName}'"), varName = weights)
                     )
                 }
 
-                if ( ! is.null(factors)) {
-                    note <- ifelse(self$options$intercept == 'refLevel',
-                                   .('Represents reference level'),
-                                   .('Represents grand mean'))
-                    table$addFootnote(rowKey="`(Intercept)`", 'term', note)
+                if (!is.null(factors)) {
+                    note <- ifelse(
+                        self$options$intercept == 'refLevel',
+                        .('Represents reference level'),
+                        .('Represents grand mean')
+                    )
+                    table$addFootnote(rowKey = "`(Intercept)`", 'term', note)
                 }
 
                 terms <- termsAll[[i]]
@@ -525,30 +515,43 @@ linRegClass <- R6::R6Class(
                 iter <- 1
                 for (j in seq_along(terms)) {
                     if (any(terms[[j]] %in% factors)) {
-                        table$addRow(rowKey=terms[[j]],
-                                     values=list(term = paste0(jmvcore::stringifyTerm(terms[[j]]), ':'),
-                                                 est='', se='', t='', p='', lower='', upper='', stdEst='',
-                                                 stdEstLower='', stdEstUpper=''))
+                        table$addRow(
+                            rowKey = terms[[j]],
+                            values = list(
+                                term = paste0(jmvcore::stringifyTerm(terms[[j]]), ':'),
+                                est = '',
+                                se = '',
+                                t = '',
+                                p = '',
+                                lower = '',
+                                upper = '',
+                                stdEst = '',
+                                stdEstLower = '',
+                                stdEstUpper = ''
+                            )
+                        )
 
                         contrastNames <- private$.contrastsCoefTable(terms[[j]])
 
                         for (k in seq_along(contrastNames)) {
-                            iter <-iter + 1
+                            iter <- iter + 1
                             rowKey <- jmvcore::composeTerm(coefTerms[[iter]])
-                            table$addRow(rowKey=rowKey, values=list(term = contrastNames[[k]]))
-                            table$addFormat(rowKey=rowKey, col=1, Cell.INDENTED)
+                            table$addRow(rowKey = rowKey, values = list(term = contrastNames[[k]]))
+                            table$addFormat(rowKey = rowKey, col = 1, Cell.INDENTED)
                         }
                     } else {
                         iter <- iter + 1
                         rowKey <- jmvcore::composeTerm(jmvcore::toB64(terms[[j]]))
-                        table$addRow(rowKey=rowKey, values=list(term = jmvcore::stringifyTerm(terms[[j]])))
+                        table$addRow(
+                            rowKey = rowKey,
+                            values = list(term = jmvcore::stringifyTerm(terms[[j]]))
+                        )
                     }
                 }
             }
         },
         .initMahalTable = function() {
-            if ( ! self$options$mahal)
-                return()
+            if (!self$options$mahal) return()
 
             groups <- self$results$models
             termsAll <- private$.getModelTerms()
@@ -567,7 +570,9 @@ linRegClass <- R6::R6Class(
                         type = jmvcore::NoticeType$WARNING
                     )
                     mahalNote$setContent(
-                        .("Mahalanobis distance can only be calculated for models with two or more covariates")
+                        .(
+                            "Mahalanobis distance can only be calculated for models with two or more covariates"
+                        )
                     )
 
                     group$insert(1, mahalNote)
@@ -582,18 +587,16 @@ linRegClass <- R6::R6Class(
             termsAll <- private$.getModelTerms()
 
             for (i in seq_along(termsAll)) {
-
-                table <- groups$get(key=i)$assump$collin
+                table <- groups$get(key = i)$assump$collin
                 terms <- termsAll[[i]]
 
-                if (length(terms) < 1)
-                    terms <- ''
+                if (length(terms) < 1) terms <- ''
 
                 for (i in seq_along(terms))
-                    table$addRow(rowKey=i, values=list(term = jmvcore::stringifyTerm(terms[i])))
+                    table$addRow(rowKey = i, values = list(term = jmvcore::stringifyTerm(terms[i])))
             }
         },
-        .initResPlots=function() {
+        .initResPlots = function() {
             groups <- self$results$models
             termsAll <- private$.getModelTerms()
             covs <- self$options$covs
@@ -605,15 +608,13 @@ linRegClass <- R6::R6Class(
                 } else {
                     terms <- c(.('Fitted'), self$options$dep)
                     for (term in modelTerms) {
-                        if (length(term) == 1 && term %in% covs)
-                            terms <- c(terms, term)
+                        if (length(term) == 1 && term %in% covs) terms <- c(terms, term)
                     }
                 }
 
-                images <- groups$get(key=i)$assump$resPlots
+                images <- groups$get(key = i)$assump$resPlots
 
-                for (term in terms)
-                    images$addItem(term)
+                for (term in terms) images$addItem(term)
             }
         },
         .initEmm = function() {
@@ -622,15 +623,15 @@ linRegClass <- R6::R6Class(
             emMeans <- self$options$emMeans
 
             for (i in seq_along(termsAll)) {
-                group <- groups$get(key=i)$emm
+                group <- groups$get(key = i)$emm
                 terms <- unique(unlist(termsAll[[i]]))
 
                 for (j in seq_along(emMeans)) {
                     emm <- emMeans[[j]]
 
-                    if ( ! is.null(emm) && all(emm %in% terms)) {
-                        group$addItem(key=j)
-                        emmGroup <- group$get(key=j)
+                    if (!is.null(emm) && all(emm %in% terms)) {
+                        group$addItem(key = j)
+                        emmGroup <- group$get(key = j)
                         emmGroup$setTitle(jmvcore::stringifyTerm(emm))
 
                         image <- emmGroup$emmPlot
@@ -647,54 +648,86 @@ linRegClass <- R6::R6Class(
             factors <- self$options$factors
 
             emMeansTableTitle <- .('Estimated Marginal Means - {term}')
-            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth=self$options$ciWidthEmm)
+            ciWidthTitle <- jmvcore::format(
+                .('{ciWidth}% Confidence Interval'),
+                ciWidth = self$options$ciWidthEmm
+            )
 
             for (i in seq_along(termsAll)) {
-                group <- groups$get(key=i)$emm
+                group <- groups$get(key = i)$emm
                 terms <- unique(unlist(termsAll[[i]]))
 
                 for (j in seq_along(emMeans)) {
                     emm <- emMeans[[j]]
 
-                    if ( ! is.null(emm) && all(emm %in% terms)) {
-                        emmGroup <- group$get(key=j)
+                    if (!is.null(emm) && all(emm %in% terms)) {
+                        emmGroup <- group$get(key = j)
 
                         table <- emmGroup$emmTable
-                        table$setTitle(jmvcore::format(emMeansTableTitle, term=jmvcore::stringifyTerm(emm)))
+                        table$setTitle(jmvcore::format(
+                            emMeansTableTitle,
+                            term = jmvcore::stringifyTerm(emm)
+                        ))
 
                         nLevels <- numeric(length(emm))
                         for (k in rev(seq_along(emm))) {
                             if (emm[k] %in% factors) {
-                                table$addColumn(name=emm[k], title=emm[k], type='text', combineBelow=TRUE)
-                                nLevels[k] <- length(levels(self$data[[ emm[k] ]]))
+                                table$addColumn(
+                                    name = emm[k],
+                                    title = emm[k],
+                                    type = 'text',
+                                    combineBelow = TRUE
+                                )
+                                nLevels[k] <- length(levels(self$data[[emm[k]]]))
                             } else {
-                                table$addColumn(name=emm[k], title=emm[k], type='number', combineBelow=TRUE)
+                                table$addColumn(
+                                    name = emm[k],
+                                    title = emm[k],
+                                    type = 'number',
+                                    combineBelow = TRUE
+                                )
                                 nLevels[k] <- 3
                             }
                         }
 
-                        table$addColumn(name='emmean', title=.('Marginal Mean'), type='number')
-                        table$addColumn(name='se', title=.('SE'), type='number')
-                        table$addColumn(name='lower', title=.('Lower'), type='number', superTitle=ciWidthTitle, visible="(ciEmm)")
-                        table$addColumn(name='upper', title=.('Upper'), type='number', superTitle=ciWidthTitle, visible="(ciEmm)")
+                        table$addColumn(
+                            name = 'emmean',
+                            title = .('Marginal Mean'),
+                            type = 'number'
+                        )
+                        table$addColumn(name = 'se', title = .('SE'), type = 'number')
+                        table$addColumn(
+                            name = 'lower',
+                            title = .('Lower'),
+                            type = 'number',
+                            superTitle = ciWidthTitle,
+                            visible = "(ciEmm)"
+                        )
+                        table$addColumn(
+                            name = 'upper',
+                            title = .('Upper'),
+                            type = 'number',
+                            superTitle = ciWidthTitle,
+                            visible = "(ciEmm)"
+                        )
 
                         nRows <- prod(nLevels)
 
                         for (k in 1:nRows) {
                             row <- list()
-                            table$addRow(rowKey=k, row)
+                            table$addRow(rowKey = k, row)
                         }
                     }
                 }
             }
         },
         .initOutputs = function() {
-            description = function(varType, modelNo=NULL) {
+            description = function(varType, modelNo = NULL) {
                 return(
                     jmvcore::format(
                         .("{varType} of linear regression model{modelNo}"),
-                        varType=varType,
-                        modelNo=ifelse(is.null(modelNo), "", paste0(" ", modelNo))
+                        varType = varType,
+                        modelNo = ifelse(is.null(modelNo), "", paste0(" ", modelNo))
                     )
                 )
             }
@@ -712,26 +745,41 @@ linRegClass <- R6::R6Class(
                 self$results$residsOV$set(keys, titles, descriptions, measureTypes)
 
                 titles <- vapply(keys, function(key) title(.('Predicted values'), key), '')
-                descriptions <- vapply(keys, function(key) description(.('Predicted values'), key), '')
+                descriptions <- vapply(
+                    keys,
+                    function(key) description(.('Predicted values'), key),
+                    ''
+                )
                 self$results$predictOV$set(keys, titles, descriptions, measureTypes)
 
                 titles <- vapply(keys, function(key) title(.("Cook's distance"), key), '')
-                descriptions <- vapply(keys, function(key) description(.("Cook's distance"), key), '')
+                descriptions <- vapply(
+                    keys,
+                    function(key) description(.("Cook's distance"), key),
+                    ''
+                )
                 self$results$cooksOV$set(keys, titles, descriptions, measureTypes)
 
                 titles <- c(
                     vapply(keys, function(key) title(.("Mahalanobis ChiSq"), key), ''),
-                    vapply(keys, function(key) title(.("Mahalanobis p"),     key), '')
+                    vapply(keys, function(key) title(.("Mahalanobis p"), key), '')
                 )
                 descriptions <- c(
-                    vapply(keys, function(key) description(.("Mahalanobis distance (Chi sq.)"), key), ''),
-                    vapply(keys, function(key) description(.("Mahalanobis distance (p)"),       key), '')
+                    vapply(
+                        keys,
+                        function(key) description(.("Mahalanobis distance (Chi sq.)"), key),
+                        ''
+                    ),
+                    vapply(keys, function(key) description(.("Mahalanobis distance (p)"), key), '')
                 )
                 order <- as.vector(
                     vapply(seq(self$nModels), function(p) c(p, p + self$nModels), numeric(2))
                 )
                 self$results$mahalOV$set(
-                    seq(2 * self$nModels), titles[order], descriptions[order], rep(measureTypes, 2)
+                    seq(2 * self$nModels),
+                    titles[order],
+                    descriptions[order],
+                    rep(measureTypes, 2)
                 )
             } else {
                 titles <- c(.("Mahalanobis ChiSq"), .("Mahalanobis p"))
@@ -762,11 +810,11 @@ linRegClass <- R6::R6Class(
 
                 F <- summary(models[[i]])$fstatistic
 
-                if ( ! is.null(F)) {
+                if (!is.null(F)) {
                     row[["f"]] <- as.numeric(F[1])
                     row[["df1"]] <- as.numeric(F[2])
                     row[["df2"]] <- as.numeric(F[3])
-                    row[["p"]] <- stats::pf(F[1], F[2], F[3], lower.tail=FALSE)
+                    row[["p"]] <- stats::pf(F[1], F[2], F[3], lower.tail = FALSE)
                 } else {
                     row[["f"]] <- ""
                     row[["df1"]] <- ""
@@ -774,14 +822,14 @@ linRegClass <- R6::R6Class(
                     row[["p"]] <- ""
                 }
 
-                table$setRow(rowNo=i, values = row)
+                table$setRow(rowNo = i, values = row)
             }
 
             table$setNote(
                 "n",
                 jmvcore::format(
                     "Models estimated using sample size of N={n}",
-                    n=length(models[[1]]$fitted.values)
+                    n = length(models[[1]]$fitted.values)
                 )
             )
         },
@@ -790,20 +838,21 @@ linRegClass <- R6::R6Class(
 
             models <- self$models
             ANOVA <- self$anovaModelComparison
-            r <- ANOVA[-1,]
+            r <- ANOVA[-1, ]
 
-            if (length(models) <= 1)
-                return()
+            if (length(models) <= 1) return()
 
-            for (i in 1:(length(models)-1)) {
+            for (i in 1:(length(models) - 1)) {
                 row <- list()
-                row[["r2"]] <- abs(summary(models[[i]])$r.squared - summary(models[[i+1]])$r.squared)
-                row[["f"]] <- (r[i,4] / r[i,3]) / (r[i,2] / r[i,1])
-                row[["df1"]] <- r[i,3]
-                row[["df2"]] <- r[i,1]
-                row[["p"]] <- stats::pf(row[["f"]], row[["df1"]], row[["df2"]], lower.tail=FALSE)
+                row[["r2"]] <- abs(
+                    summary(models[[i]])$r.squared - summary(models[[i + 1]])$r.squared
+                )
+                row[["f"]] <- (r[i, 4] / r[i, 3]) / (r[i, 2] / r[i, 1])
+                row[["df1"]] <- r[i, 3]
+                row[["df2"]] <- r[i, 1]
+                row[["p"]] <- stats::pf(row[["f"]], row[["df1"]], row[["df2"]], lower.tail = FALSE)
 
-                table$setRow(rowNo=i, values = row)
+                table$setRow(rowNo = i, values = row)
             }
         },
         .populateAnovaTables = function() {
@@ -812,8 +861,7 @@ linRegClass <- R6::R6Class(
             anova <- self$anovaModelTerms
 
             for (i in seq_along(termsAll)) {
-
-                table <- groups$get(key=i)$anova
+                table <- groups$get(key = i)$anova
 
                 terms <- termsAll[[i]]
                 termsB64 <- lapply(terms, jmvcore::toB64)
@@ -822,12 +870,13 @@ linRegClass <- R6::R6Class(
                 resIndex <- length(rowTerms)
 
                 for (j in seq_along(terms)) {
-
                     term <- termsB64[[j]]
 
                     # check which rows have the same length + same terms
-                    index <- which(length(term) == sapply(rowTerms, length) &
-                                       sapply(rowTerms, function(x) all(term %in% x)))
+                    index <- which(
+                        length(term) == sapply(rowTerms, length) &
+                            sapply(rowTerms, function(x) all(term %in% x))
+                    )
 
                     ss <- r[index, 1]
                     df <- r[index, 2]
@@ -838,25 +887,24 @@ linRegClass <- R6::R6Class(
                         p <- NaN
                     } else {
                         ms <- ss / df
-                        F  <- r[index, 3]
-                        p  <- r[index, 4]
+                        F <- r[index, 3]
+                        p <- r[index, 4]
                     }
 
-                    row <- list(ss=ss, df=df, ms=ms, F=F, p=p)
+                    row <- list(ss = ss, df = df, ms = ms, F = F, p = p)
 
-                    table$setRow(rowKey=paste0(terms[[j]]), values = row)
+                    table$setRow(rowKey = paste0(terms[[j]]), values = row)
                 }
 
                 ss <- r[resIndex, 1]
                 df <- r[resIndex, 2]
                 ms <- ss / df
 
-                row <- list(ss=ss, df=df, ms=ms, F='', p='')
+                row <- list(ss = ss, df = df, ms = ms, F = '', p = '')
 
-                table$setRow(rowKey='.RES', values = row)
+                table$setRow(rowKey = '.RES', values = row)
 
-                if ( private$.getIsAliased()[[i]] )
-                    table$setNote("alias", .(SINGULAR_WARNING))
+                if (private$.getIsAliased()[[i]]) table$setNote("alias", .(SINGULAR_WARNING))
             }
         },
         .populateCoefTables = function() {
@@ -866,14 +914,14 @@ linRegClass <- R6::R6Class(
             modelsScaled <- self$modelsScaled
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$coef
+                table <- groups$get(key = i)$coef
 
                 model <- summary(models[[i]])
                 modelScaled <- summary(modelsScaled[[i]])
 
                 CI <- self$CICoefEst[[i]]
                 CIScaled <- self$CICoefEstScaled[[i]]
-                coef<- model$coef
+                coef <- model$coef
                 coefScaled <- modelScaled$coef
                 terms <- termsAll[[i]]
                 rowTerms <- jmvcore::decomposeTerms(rownames(coef))
@@ -882,8 +930,10 @@ linRegClass <- R6::R6Class(
                     term <- terms[[j]]
 
                     # check which rows have the same length + same terms
-                    index <- which(length(term) == sapply(rowTerms, length) &
-                                       sapply(rowTerms, function(x) all(term %in% x)))
+                    index <- which(
+                        length(term) == sapply(rowTerms, length) &
+                            sapply(rowTerms, function(x) all(term %in% x))
+                    )
 
                     if (length(index) > 0) {
                         row <- list()
@@ -917,29 +967,26 @@ linRegClass <- R6::R6Class(
                         )
                     }
 
-                    table$setRow(rowKey=jmvcore::composeTerm(term), values=row)
+                    table$setRow(rowKey = jmvcore::composeTerm(term), values = row)
 
-                    if ( private$.getIsAliased()[[i]] )
-                        table$setNote("alias", .(SINGULAR_WARNING))
+                    if (private$.getIsAliased()[[i]]) table$setNote("alias", .(SINGULAR_WARNING))
                 }
             }
         },
         .populateCooksTable = function() {
-            if (! self$options$cooks)
-                return()
+            if (!self$options$cooks) return()
 
             groups <- self$results$models
             termsAll <- private$.getModelTerms()
             cooks <- private$.computeCooksSummary()
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$dataSummary$cooks
-                table$setRow(rowNo=1, values=cooks[[i]])
+                table <- groups$get(key = i)$dataSummary$cooks
+                table$setRow(rowNo = 1, values = cooks[[i]])
             }
         },
         .populateMahalTable = function() {
-            if ( ! self$options$mahal)
-                return()
+            if (!self$options$mahal) return()
 
             mahal <- self$mahal
             mahalp <- as.numeric(self$options$mahalp)
@@ -947,8 +994,8 @@ linRegClass <- R6::R6Class(
             termsAll <- private$.getModelTerms()
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$dataSummary$mahal
-                if (i <= length(mahal) && ! is.null(mahal[[i]])) {
+                table <- groups$get(key = i)$dataSummary$mahal
+                if (i <= length(mahal) && !is.null(mahal[[i]])) {
                     mahalRow <- rownames(mahal[[i]][mahal[[i]]$p <= mahalp, ])
                     mahalVal = list(
                         mean = mean(mahal[[i]]$chisq),
@@ -963,22 +1010,24 @@ linRegClass <- R6::R6Class(
                         table$setNote(
                             "excRow",
                             jmvcore::format(
-                                .("There were no Mahalanobis distances with a threshold below p < {p}."),
-                                p = mahalp)
+                                .(
+                                    "There were no Mahalanobis distances with a threshold below p < {p}."
+                                ),
+                                p = mahalp
                             )
+                        )
                     }
                 }
             }
         },
         .populateDurbinWatsonTable = function() {
-            if (! self$options$durbin)
-                return()
+            if (!self$options$durbin) return()
 
             groups <- self$results$models
             termsAll <- private$.getModelTerms()
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$assump$durbin
+                table <- groups$get(key = i)$assump$durbin
                 dwTest <- self$durbinWatson[[i]]
 
                 row <- list()
@@ -986,7 +1035,7 @@ linRegClass <- R6::R6Class(
                 row[["dw"]] <- as.numeric(dwTest[2])
                 row[["p"]] <- as.numeric(dwTest[3])
 
-                table$setRow(rowNo=1, values=row)
+                table$setRow(rowNo = 1, values = row)
             }
         },
         .populateCollinearityTable = function() {
@@ -994,17 +1043,14 @@ linRegClass <- R6::R6Class(
             termsAll <- private$.getModelTerms()
 
             for (i in seq_along(termsAll)) {
-                table <- groups$get(key=i)$assump$collin
+                table <- groups$get(key = i)$assump$collin
                 terms <- lapply(termsAll[[i]], jmvcore::toB64)
 
-                if (length(self$VIF) == 0)
-                    VIF <- NULL
-                else
-                    VIF <- self$VIF[[i]]
+                if (length(self$VIF) == 0) VIF <- NULL else VIF <- self$VIF[[i]]
 
                 if (length(dim(VIF)) > 1) {
                     names <- rownames(VIF)
-                    VIF <- VIF[,3]
+                    VIF <- VIF[, 3]
                     names(VIF) <- names
                 }
 
@@ -1021,23 +1067,23 @@ linRegClass <- R6::R6Class(
                         row[["vif"]] <- 1
                     } else {
                         # check which rows have the same length + same terms
-                        index <- which(length(terms[[j]]) == sapply(rowTerms, length) &
-                                           sapply(rowTerms, function(x) all(terms[[j]] %in% x)))
+                        index <- which(
+                            length(terms[[j]]) == sapply(rowTerms, length) &
+                                sapply(rowTerms, function(x) all(terms[[j]] %in% x))
+                        )
 
                         row[["tol"]] <- 1 / as.numeric(VIF[index])
                         row[["vif"]] <- as.numeric(VIF[index])
                     }
 
-                    table$setRow(rowNo=j, values=row)
+                    table$setRow(rowNo = j, values = row)
                 }
 
-                if ( private$.getIsAliased()[[i]] )
-                    table$setNote("alias", .(SINGULAR_WARNING))
+                if (private$.getIsAliased()[[i]]) table$setNote("alias", .(SINGULAR_WARNING))
             }
         },
         .populateEmmTables = function() {
-            if (! self$options$emmTables)
-                return()
+            if (!self$options$emmTables) return()
 
             groups <- self$results$models
             termsAll <- private$.getModelTerms()
@@ -1046,14 +1092,14 @@ linRegClass <- R6::R6Class(
             covs <- self$options$covs
 
             for (i in seq_along(termsAll)) {
-                group <- groups$get(key=i)$emm
+                group <- groups$get(key = i)$emm
                 terms <- unique(unlist(termsAll[[i]]))
 
                 for (j in seq_along(emMeans)) {
                     emm <- emMeans[[j]]
 
-                    if ( ! is.null(emm) && all(emm %in% terms)) {
-                        emmGroup <- group$get(key=j)
+                    if (!is.null(emm) && all(emm %in% terms)) {
+                        emmGroup <- group$get(key = j)
                         table <- emmGroup$emmTable
 
                         emmTable <- self$emMeans[[i]][[j]]
@@ -1061,7 +1107,9 @@ linRegClass <- R6::R6Class(
                         covValues <- list()
                         for (k in seq_along(emm)) {
                             if (emm[k] %in% covs)
-                                covValues[[ emm[k] ]] <- sort(unique(emmTable[, jmvcore::toB64(emm[k])]))
+                                covValues[[emm[k]]] <- sort(unique(emmTable[, jmvcore::toB64(emm[
+                                    k
+                                ])]))
                         }
 
                         for (k in 1:nrow(emmTable)) {
@@ -1076,12 +1124,12 @@ linRegClass <- R6::R6Class(
                                 } else {
                                     row[[emm[l]]] <- value
 
-                                    if (value == covValues[[ emm[l] ]][1])
-                                        sign[[ emm[l] ]] <- '\u207B'
-                                    else if (value == covValues[[ emm[l] ]][3])
-                                        sign[[ emm[l] ]] <- '\u207A'
-                                    else
-                                        sign[[ emm[l] ]] <- '<sup>\u03BC</sup>'
+                                    if (value == covValues[[emm[l]]][1])
+                                        sign[[emm[l]]] <- '\u207B' else if (
+                                        value == covValues[[emm[l]]][3]
+                                    )
+                                        sign[[emm[l]]] <- '\u207A' else
+                                        sign[[emm[l]]] <- '<sup>\u03BC</sup>'
                                 }
                             }
 
@@ -1090,14 +1138,19 @@ linRegClass <- R6::R6Class(
                             row[['lower']] <- emmTable[k, 'lower.CL']
                             row[['upper']] <- emmTable[k, 'upper.CL']
 
-                            table$setRow(rowNo=k, values=row)
+                            table$setRow(rowNo = k, values = row)
 
                             if (length(covValues) > 0) {
-                                table$setNote("sub", .("\u207B mean - 1SD, <sup>\u03BC</sup> mean, \u207A mean + 1SD"))
+                                table$setNote(
+                                    "sub",
+                                    .(
+                                        "\u207B mean - 1SD, <sup>\u03BC</sup> mean, \u207A mean + 1SD"
+                                    )
+                                )
 
                                 for (l in seq_along(emm)) {
                                     if (emm[l] %in% covs)
-                                        table$addSymbol(rowNo=k, emm[l], sign[[ emm[l] ]])
+                                        table$addSymbol(rowNo = k, emm[l], sign[[emm[l]]])
                                 }
                             }
                         }
@@ -1111,42 +1164,42 @@ linRegClass <- R6::R6Class(
 
             for (i in seq_along(termsAll)) {
                 residuals <- self$residuals[[i]]
-                table <- groups$get(key=i)$assump$get('norm')
+                table <- groups$get(key = i)$assump$get('norm')
 
-                res <- try(shapiro.test(residuals), silent=TRUE)
+                res <- try(shapiro.test(residuals), silent = TRUE)
                 if (jmvcore::isError(res)) {
-                    values <- list(`s[sw]`=NaN, `p[sw]`='')
+                    values <- list(`s[sw]` = NaN, `p[sw]` = '')
                 } else {
-                    values <- list(`s[sw]`=res$statistic, `p[sw]`=res$p.value)
+                    values <- list(`s[sw]` = res$statistic, `p[sw]` = res$p.value)
                 }
-                table$setRow(rowNo=1, values)
+                table$setRow(rowNo = 1, values)
             }
         },
         .populateOutputs = function() {
             if (self$options$residsOV && self$results$residsOV$isNotFilled()) {
                 self$results$residsOV$setRowNums(private$.getDataRowNums())
                 for (i in seq_along(self$residuals))
-                    self$results$residsOV$setValues(index=i, self$residuals[[i]])
+                    self$results$residsOV$setValues(index = i, self$residuals[[i]])
             }
 
             if (self$options$predictOV && self$results$predictOV$isNotFilled()) {
                 self$results$predictOV$setRowNums(names(self$predicted[[1]]))
                 for (i in seq_along(self$fitted))
-                    self$results$predictOV$setValues(index=i, as.numeric(self$predicted[[i]]))
+                    self$results$predictOV$setValues(index = i, as.numeric(self$predicted[[i]]))
             }
 
             if (self$options$cooksOV && self$results$cooksOV$isNotFilled()) {
                 self$results$cooksOV$setRowNums(private$.getDataRowNums())
                 for (i in seq_along(self$cooks))
-                    self$results$cooksOV$setValues(index=i, self$cooks[[i]])
+                    self$results$cooksOV$setValues(index = i, self$cooks[[i]])
             }
 
             if (self$options$mahalOV && self$results$mahalOV$isNotFilled()) {
                 self$results$mahalOV$setRowNums(private$.getDataRowNums())
                 for (i in seq_along(self$mahal)) {
                     if (is.null(self$mahal[[i]])) next
-                    self$results$mahalOV$setValues(index=(i * 2 - 1), self$mahal[[i]]$chisq)
-                    self$results$mahalOV$setValues(index=(i * 2 - 0), self$mahal[[i]]$p)
+                    self$results$mahalOV$setValues(index = (i * 2 - 1), self$mahal[[i]]$chisq)
+                    self$results$mahalOV$setValues(index = (i * 2 - 0), self$mahal[[i]]$p)
                 }
             }
         },
@@ -1157,22 +1210,21 @@ linRegClass <- R6::R6Class(
             termsAll <- private$.getModelTerms()
 
             for (i in seq_along(termsAll)) {
-                image <- groups$get(key=i)$assump$get('qqPlot')
+                image <- groups$get(key = i)$assump$get('qqPlot')
                 image$setState(i)
             }
         },
         .qqPlot = function(image, ggtheme, theme, ...) {
-            if (is.null(image$state))
-                return(FALSE)
+            if (is.null(image$state)) return(FALSE)
 
-            df <- as.data.frame(qqnorm(scale(self$residuals[[image$state]]), plot.it=FALSE))
+            df <- as.data.frame(qqnorm(scale(self$residuals[[image$state]]), plot.it = FALSE))
 
-            p <- ggplot(data=df, aes(x=x, y=y)) +
-                      geom_abline(slope=1, intercept=0, colour=theme$color[1]) +
-                      geom_point(aes(x=x,y=y), size=2, colour=theme$color[1]) +
-                      xlab(.("Theoretical Quantiles")) +
-                      ylab(.("Standardized Residuals")) +
-                      ggtheme
+            p <- ggplot(data = df, aes(x = x, y = y)) +
+                geom_abline(slope = 1, intercept = 0, colour = theme$color[1]) +
+                geom_point(aes(x = x, y = y), size = 2, colour = theme$color[1]) +
+                xlab(.("Theoretical Quantiles")) +
+                ylab(.("Standardized Residuals")) +
+                ggtheme
 
             return(p)
         },
@@ -1181,16 +1233,15 @@ linRegClass <- R6::R6Class(
             termsAll <- private$.getModelTerms()
 
             for (i in seq_along(termsAll)) {
-                images <- groups$get(key=i)$assump$resPlots
+                images <- groups$get(key = i)$assump$resPlots
                 for (term in images$itemKeys) {
-                    image <- images$get(key=term)
-                    image$setState(list(modelNo=i, term=term))
+                    image <- images$get(key = term)
+                    image$setState(list(modelNo = i, term = term))
                 }
             }
         },
         .resPlot = function(image, ggtheme, theme, ...) {
-            if (is.null(image$state))
-                return(FALSE)
+            if (is.null(image$state)) return(FALSE)
 
             res <- self$residuals[[image$state$modelNo]]
 
@@ -1200,19 +1251,18 @@ linRegClass <- R6::R6Class(
                 x <- self$dataProcessed[[jmvcore::toB64(image$state$term)]]
             }
 
-            df <- data.frame(y=res, x=x)
+            df <- data.frame(y = res, x = x)
 
-            p <- ggplot(data=df, aes(y=y, x=x)) +
-                      geom_point(aes(x=x,y=y), colour=theme$color[1]) +
-                      xlab(image$state$term) +
-                      ylab(.("Residuals")) +
-                      ggtheme
+            p <- ggplot(data = df, aes(y = y, x = x)) +
+                geom_point(aes(x = x, y = y), colour = theme$color[1]) +
+                xlab(image$state$term) +
+                ylab(.("Residuals")) +
+                ggtheme
 
             return(p)
         },
         .prepareEmmPlots = function() {
-            if (! self$options$emmPlots)
-                return()
+            if (!self$options$emmPlots) return()
 
             covs <- self$options$covs
             dep <- self$options$dep
@@ -1223,55 +1273,62 @@ linRegClass <- R6::R6Class(
             emMeansTables <- private$.getEmMeansForPlot()
 
             for (i in seq_along(termsAll)) {
-                group <- groups$get(key=i)$emm
+                group <- groups$get(key = i)$emm
                 terms <- unique(unlist(termsAll[[i]]))
 
                 for (j in seq_along(emMeans)) {
                     term <- emMeans[[j]]
 
-                    if ( ! is.null(term) && all(term %in% terms)) {
-                        image <- group$get(key=j)$emmPlot
+                    if (!is.null(term) && all(term %in% terms)) {
+                        image <- group$get(key = j)$emmPlot
 
                         termB64 <- jmvcore::toB64(term)
                         cont <- FALSE
-                        if (term[1] %in% covs)
-                            cont <- TRUE
+                        if (term[1] %in% covs) cont <- TRUE
 
                         d <- emMeansTables[[i]][[j]]
 
                         for (k in 1:3) {
-                            if ( ! is.na(termB64[k])) {
+                            if (!is.na(termB64[k])) {
                                 if (term[k] %in% covs) {
                                     if (k > 1) {
-                                        d[[ termB64[k] ]] <- factor(d[[ termB64[k] ]])
-                                        levels(d[[ termB64[k] ]]) <- c('-1SD', 'Mean', '+1SD')
+                                        d[[termB64[k]]] <- factor(d[[termB64[k]]])
+                                        levels(d[[termB64[k]]]) <- c('-1SD', 'Mean', '+1SD')
                                     }
                                 } else {
-                                    d[[ termB64[k] ]] <- factor(
-                                        jmvcore::fromB64(d[[ termB64[k] ]]),
-                                        jmvcore::fromB64(levels(d[[ termB64[k] ]]))
+                                    d[[termB64[k]]] <- factor(
+                                        jmvcore::fromB64(d[[termB64[k]]]),
+                                        jmvcore::fromB64(levels(d[[termB64[k]]]))
                                     )
                                 }
                             }
                         }
 
                         names <- list(
-                            'x'=termB64[1], 'y'='emmean', 'lines'=termB64[2], 'plots'=termB64[3],
-                            'lower'='lower.CL', 'upper'='upper.CL'
+                            'x' = termB64[1],
+                            'y' = 'emmean',
+                            'lines' = termB64[2],
+                            'plots' = termB64[3],
+                            'lower' = 'lower.CL',
+                            'upper' = 'upper.CL'
                         )
                         names <- lapply(names, function(x) if (is.na(x)) NULL else x)
 
-                        labels <- list('x'=term[1], 'y'=dep, 'lines'=term[2], 'plots'=term[3])
+                        labels <- list(
+                            'x' = term[1],
+                            'y' = dep,
+                            'lines' = term[2],
+                            'plots' = term[3]
+                        )
                         labels <- lapply(labels, function(x) if (is.na(x)) NULL else x)
 
-                        image$setState(list(data=d, names=names, labels=labels, cont=cont))
+                        image$setState(list(data = d, names = names, labels = labels, cont = cont))
                     }
                 }
             }
         },
         .emmPlot = function(image, ggtheme, theme, ...) {
-            if (is.null(image$state))
-                return(FALSE)
+            if (is.null(image$state)) return(FALSE)
 
             data <- image$state$data
             names <- image$state$names
@@ -1288,23 +1345,26 @@ linRegClass <- R6::R6Class(
                 color <- names$lines
             }
 
-            p <- ggplot(data=data,
-                        aes_string(x=names$x, y=names$y, group=names$lines),
-                        inherit.aes = FALSE)
+            p <- ggplot(
+                data = data,
+                aes_string(x = names$x, y = names$y, group = names$lines),
+                inherit.aes = FALSE
+            )
 
             if (cont) {
-                p <- p + geom_line(aes_string(color=color, fill=color, linetype=lty))
+                p <- p + geom_line(aes_string(color = color, fill = color, linetype = lty))
 
                 if (self$options$ciEmm && is.null(names$plots) && is.null(names$lines))
                     p <- p +
                         geom_ribbon(
-                            aes_string(x=names$x, ymin=names$lower, ymax=names$upper),
-                            show.legend=TRUE, alpha=.3
+                            aes_string(x = names$x, ymin = names$lower, ymax = names$upper),
+                            show.legend = TRUE,
+                            alpha = .3
                         )
             } else {
                 p <- p +
                     geom_point(
-                        aes_string(color=names$lines, fill=names$lines),
+                        aes_string(color = names$lines, fill = names$lines),
                         position = dodge
                     )
 
@@ -1312,21 +1372,33 @@ linRegClass <- R6::R6Class(
                     p <- p +
                         geom_errorbar(
                             aes_string(
-                                x=names$x, ymin=names$lower, ymax=names$upper,
-                                color=names$lines, fill=names$lines
+                                x = names$x,
+                                ymin = names$lower,
+                                ymax = names$upper,
+                                color = names$lines,
+                                fill = names$lines
                             ),
-                            width=.1, size=.8, position=dodge
+                            width = .1,
+                            size = .8,
+                            position = dodge
                         )
             }
 
-            if ( ! is.null(names$plots)) {
+            if (!is.null(names$plots)) {
                 formula <- as.formula(paste(". ~", names$plots))
                 p <- p + facet_grid(formula)
             }
 
             p <- p +
-                labs(x=labels$x, y=labels$y, fill=labels$lines, color=labels$lines, linetype=labels$lines) +
-                ggtheme + theme(panel.spacing = unit(2, "lines"))
+                labs(
+                    x = labels$x,
+                    y = labels$y,
+                    fill = labels$lines,
+                    color = labels$lines,
+                    linetype = labels$lines
+                ) +
+                ggtheme +
+                theme(panel.spacing = unit(2, "lines"))
 
             return(p)
         },
@@ -1362,8 +1434,7 @@ linRegClass <- R6::R6Class(
                     terms <- termsAll[[i]]
                     for (term in terms) {
                         if (any(term %in% factors))
-                            rowNames <- c(rowNames, private$.contrastModel(term))
-                        else
+                            rowNames <- c(rowNames, private$.contrastModel(term)) else
                             rowNames[[length(rowNames) + 1]] <- jmvcore::toB64(term)
                     }
                     rowNamesAll[[i]] <- rowNames
@@ -1375,13 +1446,12 @@ linRegClass <- R6::R6Class(
         },
         .getEmMeansForPlot = function() {
             if (is.null(private$.emMeansForPlot))
-                private$.emMeansForPlot <- private$.computeEmMeans(forPlot=TRUE)
+                private$.emMeansForPlot <- private$.computeEmMeans(forPlot = TRUE)
 
             return(private$.emMeansForPlot)
         },
         .getDataRowNums = function() {
-            if (is.null(private$.dataRowNums))
-                private$.dataRowNums <- rownames(self$dataProcessed)
+            if (is.null(private$.dataRowNums)) private$.dataRowNums <- rownames(self$dataProcessed)
 
             return(private$.dataRowNums)
         },
@@ -1403,8 +1473,7 @@ linRegClass <- R6::R6Class(
             factors <- self$options$factors
 
             nLevels <- list()
-            for (factor in factors)
-                nLevels[[factor]] <- length(levels(self$data[[factor]]))
+            for (factor in factors) nLevels[[factor]] <- length(levels(self$data[[factor]]))
 
             contrast <- list()
             for (term in terms) {
@@ -1418,7 +1487,7 @@ linRegClass <- R6::R6Class(
             contrastGrid <- expand.grid(contrast)
             contrastTerms <- list()
             for (i in 1:nrow(contrastGrid))
-                contrastTerms[[i]] <- as.character(unlist(contrastGrid[i,]))
+                contrastTerms[[i]] <- as.character(unlist(contrastGrid[i, ]))
 
             return(contrastTerms)
         },
@@ -1431,8 +1500,7 @@ linRegClass <- R6::R6Class(
             refVars <- sapply(refLevels, function(x) x$var)
 
             levels <- list()
-            for (factor in factors)
-                levels[[factor]] <- levels(self$data[[factor]])
+            for (factor in factors) levels[[factor]] <- levels(self$data[[factor]])
 
             contrast <- list()
             for (term in terms) {
@@ -1444,8 +1512,7 @@ linRegClass <- R6::R6Class(
                     refLevel <- levels[[term]][refNo]
 
                     c <- paste(contrLevels, refLevel, sep = ' \u2013 ')
-                    if (length(terms) > 1)
-                        c <- paste0('(', c, ')')
+                    if (length(terms) > 1) c <- paste0('(', c, ')')
 
                     contrast[[term]] <- c
                 } else {
@@ -1462,16 +1529,20 @@ linRegClass <- R6::R6Class(
             depB64 <- jmvcore::toB64(dep)
             terms <- private$.getModelTerms()
 
-            formulas <- list();
+            formulas <- list()
             for (i in seq_along(terms)) {
                 termsB64 <- lapply(terms[[i]], jmvcore::toB64)
                 composedTerms <- jmvcore::composeTerms(termsB64)
-                formulas[[i]] <- as.formula(paste(depB64, paste0(composedTerms, collapse ="+"), sep="~"))
+                formulas[[i]] <- as.formula(paste(
+                    depB64,
+                    paste0(composedTerms, collapse = "+"),
+                    sep = "~"
+                ))
             }
 
             return(formulas)
         },
-        .cleanData = function(naOmit=TRUE, naSkip=NULL) {
+        .cleanData = function(naOmit = TRUE, naSkip = NULL) {
             dep <- self$options$dep
             covs <- self$options$covs
             factors <- self$options$factors
@@ -1486,7 +1557,10 @@ linRegClass <- R6::R6Class(
 
             for (factor in factors) {
                 if (length(levels(dataRaw[[factor]])) <= 1)
-                    stop(jmvcore::format(.("Factor '{factor}' needs to have at least 2 levels"), factor=factor))
+                    stop(jmvcore::format(
+                        .("Factor '{factor}' needs to have at least 2 levels"),
+                        factor = factor
+                    ))
 
                 ref <- refLevels[[which(factor == refVars)]][['ref']]
                 column <- factor(
@@ -1498,14 +1572,16 @@ linRegClass <- R6::R6Class(
                 column <- relevel(column, ref = jmvcore::toB64(ref))
 
                 data[[jmvcore::toB64(factor)]] <- column
-                stats::contrasts(data[[jmvcore::toB64(factor)]]) <- private$.createContrasts(levels(column))
+                stats::contrasts(data[[jmvcore::toB64(factor)]]) <- private$.createContrasts(levels(
+                    column
+                ))
             }
 
             for (cov in c(dep, covs, weights))
                 data[[jmvcore::toB64(cov)]] <- jmvcore::toNumeric(dataRaw[[cov]])
 
             global_weights <- attr(dataRaw, "jmv-weights")
-            if (is.null(weights) && ! is.null(global_weights))
+            if (is.null(weights) && !is.null(global_weights))
                 data[[".WEIGHTS"]] = jmvcore::toNumeric(global_weights)
 
             attr(data, 'row.names') <- rownames(self$data)
@@ -1525,15 +1601,13 @@ linRegClass <- R6::R6Class(
 
             levels <- list()
             for (i in seq_along(emm)) {
-                column <- data[[ emm[i] ]]
+                column <- data[[emm[i]]]
 
                 if (emm[i] %in% factors) {
-                    levels[[ emm[i] ]] <- levels(column)
+                    levels[[emm[i]]] <- levels(column)
                 } else {
-                    if (i == 1)
-                        levels[[ emm[i] ]] <- ''
-                    else
-                        levels[[ emm[i] ]] <- c('-1SD', 'Mean', '+1SD')
+                    if (i == 1) levels[[emm[i]]] <- '' else
+                        levels[[emm[i]]] <- c('-1SD', 'Mean', '+1SD')
                 }
             }
 
@@ -1561,7 +1635,7 @@ linRegClass <- R6::R6Class(
 
             return(c(width, height))
         },
-        .createContrasts=function(levels) {
+        .createContrasts = function(levels) {
             if (self$options$intercept == 'refLevel') {
                 contrast <- contr.treatment(levels)
                 dimnames(contrast) <- NULL
@@ -1569,7 +1643,7 @@ linRegClass <- R6::R6Class(
                 nLevels <- length(levels)
                 dummy <- contr.treatment(levels)
                 dimnames(dummy) <- NULL
-                coding <- matrix(rep(1/nLevels, prod(dim(dummy))), ncol=nLevels-1)
+                coding <- matrix(rep(1 / nLevels, prod(dim(dummy))), ncol = nLevels - 1)
                 contrast <- (dummy - coding)
             }
 
@@ -1577,10 +1651,11 @@ linRegClass <- R6::R6Class(
         },
         .scaleData = function(data) {
             for (col in names(data)) {
-                if ( ! is.factor(data[[col]]) && length(unique(data[[col]])) > 1 )
+                if (!is.factor(data[[col]]) && length(unique(data[[col]])) > 1)
                     data[[col]] <- scale(data[[col]])
             }
 
             return(data)
-        })
+        }
+    )
 )

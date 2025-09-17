@@ -7,12 +7,15 @@ testthat::test_that('All options in the logRegBin work (sunny)', {
     N <- 100
     cov1 <- rnorm(N)
     cov2 <- rnorm(N)
-    z <- 1 + 2*cov1 + 3*cov2
-    pr <- 1 / ( 1 + exp(-z))
+    z <- 1 + 2 * cov1 + 3 * cov2
+    pr <- 1 / (1 + exp(-z))
     dep <- factor(rbinom(N, 1, pr))
 
     df <- data.frame(
-        `dep 1`=dep, `cov 1`=cov1, `cov 2`=cov2, check.names = FALSE
+        `dep 1` = dep,
+        `cov 1` = cov1,
+        `cov 2` = cov2,
+        check.names = FALSE
     )
 
     r <- jmv::logRegBin(
@@ -20,7 +23,7 @@ testthat::test_that('All options in the logRegBin work (sunny)', {
         dep = "dep 1",
         covs = c("cov 1", "cov 2"),
         blocks = list(list("cov 1", "cov 2")),
-        refLevels = list(list(var="dep 1", ref="0")),
+        refLevels = list(list(var = "dep 1", ref = "0")),
         modelTest = TRUE,
         bic = TRUE,
         pseudoR2 = c("r2mf", "r2cs", "r2n", "r2t"),
@@ -34,7 +37,7 @@ testthat::test_that('All options in the logRegBin work (sunny)', {
         sens = TRUE,
         auc = TRUE,
         collin = TRUE,
-        emMeans = ~`cov 1` + `cov 2`,
+        emMeans = ~ `cov 1` + `cov 2`,
         emmPlots = FALSE,
         emmTables = TRUE
     )
@@ -117,15 +120,19 @@ testthat::test_that('logregbin works with factors', {
     set.seed(1337)
 
     N <- 100
-    x <- sample(LETTERS[1:3], N, replace=TRUE)
-    y <- sample(0:1, N, replace=TRUE)
-    df <- data.frame(y=y, x=x)
+    x <- sample(LETTERS[1:3], N, replace = TRUE)
+    y <- sample(0:1, N, replace = TRUE)
+    df <- data.frame(y = y, x = x)
 
-    refLevels <- list(list(var="y", ref="0"),
-                      list(var="x", ref="A"))
+    refLevels <- list(list(var = "y", ref = "0"), list(var = "x", ref = "A"))
 
-    logReg <- jmv::logRegBin(data = df, dep = "y", factors = "x",
-                             blocks = list("x"), refLevels = refLevels)
+    logReg <- jmv::logRegBin(
+        data = df,
+        dep = "y",
+        factors = "x",
+        blocks = list("x"),
+        refLevels = refLevels
+    )
 
     # Test coefficients table
     coef <- logReg$models[[1]]$coef$asDF
@@ -151,15 +158,19 @@ testthat::test_that('logregbin works with ordered factors', {
     set.seed(1337)
 
     N <- 100
-    x <- factor(sample(LETTERS[1:3], N, replace=TRUE), ordered = TRUE)
-    y <- factor(sample(0:1, N, replace=TRUE), ordered = TRUE)
-    df <- data.frame(y=y, x=x)
+    x <- factor(sample(LETTERS[1:3], N, replace = TRUE), ordered = TRUE)
+    y <- factor(sample(0:1, N, replace = TRUE), ordered = TRUE)
+    df <- data.frame(y = y, x = x)
 
-    refLevels <- list(list(var="y", ref="0"),
-                      list(var="x", ref="A"))
+    refLevels <- list(list(var = "y", ref = "0"), list(var = "x", ref = "A"))
 
-    logReg <- jmv::logRegBin(data = df, dep = "y", factors = "x",
-                             blocks = list("x"), refLevels = refLevels)
+    logReg <- jmv::logRegBin(
+        data = df,
+        dep = "y",
+        factors = "x",
+        blocks = list("x"),
+        refLevels = refLevels
+    )
 
     # Test coefficients table
     coef <- logReg$models[[1]]$coef$asDF
@@ -186,11 +197,11 @@ testthat::test_that('Emmeans work with nuisance parameters (no interactions)', {
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(1337)
     df <- data.frame(
-        dep = sample(0:1, 100, replace=TRUE),
+        dep = sample(0:1, 100, replace = TRUE),
         cov1 = rnorm(100),
         cov2 = rnorm(100),
-        factor1 = sample(letters[1:3], 100, replace=TRUE),
-        factor2 = sample(LETTERS[1:2], 100, replace=TRUE),
+        factor1 = sample(letters[1:3], 100, replace = TRUE),
+        factor2 = sample(LETTERS[1:2], 100, replace = TRUE),
         stringsAsFactors = TRUE
     )
 
@@ -199,9 +210,9 @@ testthat::test_that('Emmeans work with nuisance parameters (no interactions)', {
     factors <- paste0("factor", 1:2)
     blocks = list(as.list(c(covs, factors)))
     refLevels = list(
-        list(var="dep", ref="0"),
-        list(var=factors[1], ref="a"),
-        list(var=factors[2], ref="A")
+        list(var = "dep", ref = "0"),
+        list(var = factors[1], ref = "a"),
+        list(var = factors[2], ref = "A")
     )
 
     r <- jmv::logRegBin(
@@ -245,8 +256,8 @@ testthat::test_that('Emmeans work with nuisance parameters (no interactions)', {
     )
     testthat::expect_equal(
         c(0.75, 0.721, 0.743, 0.686, 0.643, 0.68, 0.674, 0.641, 0.67),
-        emmeansTable[['upper']]
-        , tolerance = 1e-3
+        emmeansTable[['upper']],
+        tolerance = 1e-3
     )
 })
 
@@ -258,11 +269,11 @@ testthat::test_that('Emmeans work with nuisance parameters (with interactions)',
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(1337)
     df <- data.frame(
-        dep = sample(0:1, 100, replace=TRUE),
+        dep = sample(0:1, 100, replace = TRUE),
         cov1 = rnorm(100),
         cov2 = rnorm(100),
-        factor1 = sample(letters[1:3], 100, replace=TRUE),
-        factor2 = sample(LETTERS[1:2], 100, replace=TRUE),
+        factor1 = sample(letters[1:3], 100, replace = TRUE),
+        factor2 = sample(LETTERS[1:2], 100, replace = TRUE),
         stringsAsFactors = TRUE
     )
 
@@ -271,9 +282,9 @@ testthat::test_that('Emmeans work with nuisance parameters (with interactions)',
     factors <- c("factor1", "factor2")
     blocks = list(list("cov1", "cov2", "factor1", "factor2", c("cov1", "factor1")))
     refLevels = list(
-        list(var="dep", ref="0"),
-        list(var=factors[1], ref="a"),
-        list(var=factors[2], ref="A")
+        list(var = "dep", ref = "0"),
+        list(var = factors[1], ref = "a"),
+        list(var = factors[2], ref = "A")
     )
 
     r <- jmv::linReg(
@@ -326,24 +337,24 @@ testthat::test_that("Analysis works with global weights", {
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(1337)
 
-    weights <- sample(1:10, 100, replace=TRUE)
+    weights <- sample(1:10, 100, replace = TRUE)
 
     df <- data.frame(
-        dep = factor(sample(0:1, 100, replace=TRUE)),
+        dep = factor(sample(0:1, 100, replace = TRUE)),
         cov = rnorm(100),
-        factor = factor(sample(LETTERS[1:3], 100, replace=TRUE))
+        factor = factor(sample(LETTERS[1:3], 100, replace = TRUE))
     )
     attr(df, "jmv-weights") <- weights
 
-    refLevels = list(list(var="dep", ref="0"), list(var="factor", ref="A"))
+    refLevels = list(list(var = "dep", ref = "0"), list(var = "factor", ref = "A"))
 
     r <- jmv::logRegBin(
         df,
-        dep="dep",
-        covs="cov",
-        factors="factor",
-        blocks=list(list("cov", "factor")),
-        refLevels=refLevels,
+        dep = "dep",
+        covs = "cov",
+        factors = "factor",
+        blocks = list(list("cov", "factor")),
+        refLevels = refLevels,
     )
 
     # Test model fit table
@@ -355,7 +366,11 @@ testthat::test_that("Analysis works with global weights", {
 
     # Test model coefficients table
     coefTable <- r$models[[1]]$coef$asDF
-    testthat::expect_equal(c(-0.199, -0.251, NA, 0.457, 0.027), coefTable[['est']], tolerance = 1e-3)
+    testthat::expect_equal(
+        c(-0.199, -0.251, NA, 0.457, 0.027),
+        coefTable[['est']],
+        tolerance = 1e-3
+    )
     testthat::expect_equal(c(0.14, 0.085, NA, 0.201, 0.21), coefTable[['se']], tolerance = 1e-3)
     testthat::expect_equal(c(-1.418, -2.949, NA, 2.276, 0.128), coefTable[['z']], tolerance = 1e-3)
     testthat::expect_equal(c(0.156, 0.003, NA, 0.023, 0.899), coefTable[['p']], tolerance = 1e-3)
@@ -366,21 +381,23 @@ testthat::test_that("Analysis adds note when design matrix is singular", {
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(1337)
     df <- data.frame(
-        dep = rep(0:1, times=50),
-        var1 = c(sample(letters[2:3], replace=TRUE, 50), rep(letters[1], 50)),
-        var2 = c(sample(LETTERS[2:3], replace=TRUE, 50), rep(LETTERS[1], 50))
+        dep = rep(0:1, times = 50),
+        var1 = c(sample(letters[2:3], replace = TRUE, 50), rep(letters[1], 50)),
+        var2 = c(sample(LETTERS[2:3], replace = TRUE, 50), rep(LETTERS[1], 50))
     )
     refLevels = list(
-        list(var="dep", ref="0"), list(var="var1", ref=letters[1]), list(var="var2", ref=LETTERS[1])
+        list(var = "dep", ref = "0"),
+        list(var = "var1", ref = letters[1]),
+        list(var = "var2", ref = LETTERS[1])
     )
 
     # WHEN a binomial logistic regression is run on this data set
     r <- jmv::logRegBin(
         df,
-        dep="dep",
-        factors=c("var1", "var2"),
-        blocks=list(list("var1", "var2")),
-        refLevels=refLevels
+        dep = "dep",
+        factors = c("var1", "var2"),
+        blocks = list(list("var1", "var2")),
+        refLevels = refLevels
     )
 
     # THEN the coefficients table contains a note informing the user on the singularity of the data
@@ -396,26 +413,29 @@ testthat::test_that('Model fit table contains sample size footnote', {
 
     r <- jmv::logRegBin(
         df,
-        dep="y",
-        covs="x",
-        blocks=list(list("x")),
-        refLevels=list(list(var="y", ref="0"))
+        dep = "y",
+        covs = "x",
+        blocks = list(list("x")),
+        refLevels = list(list(var = "y", ref = "0"))
     )
 
     testthat::expect_match(r$modelFit$notes$n$note, "N=11")
 })
 
 params <- list(
-    list(refLevels = list(list(var="dep", ref="c"), list(var="factor", ref="C")), info = "Non-existing reference levels"),
+    list(
+        refLevels = list(list(var = "dep", ref = "c"), list(var = "factor", ref = "C")),
+        info = "Non-existing reference levels"
+    ),
     list(refLevels = NULL, info = "No reference levels"),
-    list(refLevels = list(list(var="wrong_factor", ref="A")), info = "Wrong variable name")
+    list(refLevels = list(list(var = "wrong_factor", ref = "A")), info = "Wrong variable name")
 )
 testthat::test_that('Reference level defaults to first level for faulty reference levels', {
     for (param in params) {
         # GIVEN a dataset with a factor with two levels
         df <- data.frame(
-            dep = rep(letters[1:2], length.out=10),
-            factor = rep(LETTERS[1:2], length.out=10),
+            dep = rep(letters[1:2], length.out = 10),
+            factor = rep(LETTERS[1:2], length.out = 10),
             stringsAsFactors = TRUE
         )
 
@@ -429,12 +449,15 @@ testthat::test_that('Reference level defaults to first level for faulty referenc
         )
 
         # THEN the reference level should default to the first level for the dep variable
-        testthat::expect_match(r$models[[1]]$coef$notes$est$note, '"dep = b" vs. "dep = a"', info=param$info)
+        testthat::expect_match(
+            r$models[[1]]$coef$notes$est$note,
+            '"dep = b" vs. "dep = a"',
+            info = param$info
+        )
         # THEN the reference level should default to the first level for the factor
-        testthat::expect_match(r$models[[1]]$coef$asDF$term[3], "B – A", info=param$info)
+        testthat::expect_match(r$models[[1]]$coef$asDF$term[3], "B – A", info = param$info)
         # AND a warning is added informing the user that the user defined reference level does not
         #   exist and therefore was changed to the first level
-        testthat::expect_match(r[[1]]$content, "reference level was not found", info=param$info)
+        testthat::expect_match(r[[1]]$content, "reference level was not found", info = param$info)
     }
 })
-

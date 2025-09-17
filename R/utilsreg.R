@@ -21,17 +21,18 @@ getReferenceLevels = function(data, vars, refLevels) {
         refLevel <- refLevelsList[[var]]
 
         # If no refLevel is provided or the provided level is invalid, use the first level
-        if (is.null(refLevel) || ! (refLevel %in% factorLevels)) {
+        if (is.null(refLevel) || !(refLevel %in% factorLevels)) {
             refLevel <- factorLevels[1]
             changedVars <- c(changedVars, var)
         }
 
-        updatedRefLevels[[ length(updatedRefLevels) + 1 ]] <- list(
-            var = var, ref = refLevel
+        updatedRefLevels[[length(updatedRefLevels) + 1]] <- list(
+            var = var,
+            ref = refLevel
         )
     }
 
-    return(list(refLevels=updatedRefLevels, changedVars=changedVars))
+    return(list(refLevels = updatedRefLevels, changedVars = changedVars))
 }
 
 
@@ -42,11 +43,16 @@ getReferenceLevels = function(data, vars, refLevels) {
 #' @keywords internal
 setRefLevelWarning = function(self, changedVars) {
     message <- jmvcore::format(
-        .("The specified reference level was not found for the following variable(s): {vars}. Defaulting to the first available level. To use a custom reference level, ensure the defined reference level is available in the data."),
-        vars=listItems(self, changedVars)
+        .(
+            "The specified reference level was not found for the following variable(s): {vars}. Defaulting to the first available level. To use a custom reference level, ensure the defined reference level is available in the data."
+        ),
+        vars = listItems(self, changedVars)
     )
 
     setAnalysisNotice(
-        self, message, name="refLevelWarning", type=jmvcore::NoticeType$STRONG_WARNING
+        self,
+        message,
+        name = "refLevelWarning",
+        type = jmvcore::NoticeType$STRONG_WARNING
     )
 }

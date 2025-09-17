@@ -6,23 +6,23 @@ testthat::test_that('All options in the descriptives work for cont vars without 
 
     set.seed(1337)
     x <- rnorm(100, 0, 1)
-    df <- data.frame(x=x)
+    df <- data.frame(x = x)
 
     desc <- jmv::descriptives(
-        data=df,
-        vars=x,
-        mode=TRUE,
-        sum=TRUE,
-        variance=TRUE,
-        range=TRUE,
-        se=TRUE,
-        ci=TRUE,
-        iqr=TRUE,
-        skew=TRUE,
-        kurt=TRUE,
-        sw=TRUE,
-        pcEqGr=TRUE,
-        pc=TRUE
+        data = df,
+        vars = x,
+        mode = TRUE,
+        sum = TRUE,
+        variance = TRUE,
+        range = TRUE,
+        se = TRUE,
+        ci = TRUE,
+        iqr = TRUE,
+        skew = TRUE,
+        kurt = TRUE,
+        sw = TRUE,
+        pcEqGr = TRUE,
+        pc = TRUE
     )
 
     r <- desc$descriptives$asDF
@@ -33,9 +33,9 @@ testthat::test_that('All options in the descriptives work for cont vars without 
     mean <- mean(x)
     se <- sd(x) / sqrt(n)
     tCriticalValue <- 1 - ((1 - CI_WIDTH) / 2)
-    ciLower <- mean - qt(tCriticalValue, df=n-1) * se
-    ciUpper <- mean + qt(tCriticalValue, df=n-1) * se
-    mode <- as.numeric(names(table(x)[table(x)==max(table(x))]))[1]
+    ciLower <- mean - qt(tCriticalValue, df = n - 1) * se
+    ciUpper <- mean + qt(tCriticalValue, df = n - 1) * se
+    mode <- as.numeric(names(table(x)[table(x) == max(table(x))]))[1]
     shapiro <- shapiro.test(x)
     quantiles <- quantile(x, QUANTS)
 
@@ -73,39 +73,68 @@ testthat::test_that('Descriptives transposed table works with splitBy', {
     suppressWarnings(RNGversion("3.5.0"))
     set.seed(1337)
     df <- data.frame(
-        Q1=rnorm(100),
-        Q2=rnorm(100),
-        Q3=rnorm(100),
-        Q4=rnorm(100),
-        group=sample(letters[1:3], 100, replace = TRUE)
+        Q1 = rnorm(100),
+        Q2 = rnorm(100),
+        Q3 = rnorm(100),
+        Q4 = rnorm(100),
+        group = sample(letters[1:3], 100, replace = TRUE)
     )
 
     desc <- jmv::descriptives(
-        data=df, vars=vars(Q1, Q2, Q3, Q4), splitBy=group, desc="rows"
+        data = df,
+        vars = vars(Q1, Q2, Q3, Q4),
+        splitBy = group,
+        desc = "rows"
     )
 
     r <- desc$descriptivesT$asDF
 
     testthat::expect_equal(c(36, 28, 36, 36, 28, 36, 36, 28, 36, 36, 28, 36), r$n)
     testthat::expect_equal(
-        c(0.1454, 0.2344, 0.3307, 0.09781, -0.02078, 0.03245, -0.2239, -0.1114,
-          -0.1302, -0.005095, -0.1445, 0.01393),
-        r$mean, tolerance=1e-4
+        c(
+            0.1454,
+            0.2344,
+            0.3307,
+            0.09781,
+            -0.02078,
+            0.03245,
+            -0.2239,
+            -0.1114,
+            -0.1302,
+            -0.005095,
+            -0.1445,
+            0.01393
+        ),
+        r$mean,
+        tolerance = 1e-4
     )
     testthat::expect_equal(
-        c(1.138, 0.8853, 1.138, 0.9002, 1.178, 0.9884, 1.044, 1.225, 0.9436,
-          0.8925, 1.070, 0.843),
-        r$sd, tolerance=1e-3
+        c(1.138, 0.8853, 1.138, 0.9002, 1.178, 0.9884, 1.044, 1.225, 0.9436, 0.8925, 1.070, 0.843),
+        r$sd,
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(-2.344, -1.774, -1.679, -1.154, -2.474, -2.32, -2.38, -2.689, -1.979,
-          -1.697, -1.867, -1.493),
-        r$min, tolerance=1e-3
+        c(
+            -2.344,
+            -1.774,
+            -1.679,
+            -1.154,
+            -2.474,
+            -2.32,
+            -2.38,
+            -2.689,
+            -1.979,
+            -1.697,
+            -1.867,
+            -1.493
+        ),
+        r$min,
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(2.199, 1.785, 3.446, 3.104, 2.929, 2.209, 2.258, 3.406, 1.933, 1.851,
-          1.898, 2.163),
-        r$max, tolerance=1e-4
+        c(2.199, 1.785, 3.446, 3.104, 2.929, 2.209, 2.258, 3.406, 1.933, 1.851, 1.898, 2.163),
+        r$max,
+        tolerance = 1e-4
     )
 })
 
@@ -118,8 +147,8 @@ testthat::test_that("Frequency table is displayed correctly for empty data set",
     desc <- jmv::descriptives(data = df, vars = "dep", splitBy = "group", freq = TRUE)
     freq <- desc$frequencies[[1]]$asDF
 
-    testthat::expect_equal(rep(letters[1:3], each=3), freq[[1]])
-    testthat::expect_equal(rep(LETTERS[1:3], times=3), freq[[2]])
+    testthat::expect_equal(rep(letters[1:3], each = 3), freq[[1]])
+    testthat::expect_equal(rep(LETTERS[1:3], times = 3), freq[[2]])
     testthat::expect_equal(rep(0, 9), freq$counts)
     testthat::expect_equal(rep(0, 9), freq$pc)
     testthat::expect_equal(rep(0, 9), freq$cumpc)
@@ -156,8 +185,8 @@ testthat::test_that("Grouped frequency table is displayed correctly", {
     desc <- jmv::descriptives(data = df, vars = "dep", splitBy = "group", freq = TRUE)
     freq <- desc$frequencies[[1]]$asDF
 
-    testthat::expect_equal(as.character(rep(1:3, each=3)), freq[[1]])
-    testthat::expect_equal(rep(letters[1:3], times=3), freq[[2]])
+    testthat::expect_equal(as.character(rep(1:3, each = 3)), freq[[1]])
+    testthat::expect_equal(rep(letters[1:3], times = 3), freq[[2]])
     testthat::expect_equal(c(13, 10, 10, 7, 15, 6, 13, 10, 16), freq$counts)
     testthat::expect_equal(c(0.13, 0.1, 0.1, 0.07, 0.15, 0.06, 0.13, 0.1, 0.16), freq$pc)
     testthat::expect_equal(c(0.13, 0.23, 0.33, 0.4, 0.55, 0.61, 0.74, 0.84, 1), freq$cumpc)
@@ -198,15 +227,23 @@ testthat::test_that("Weighted grouped frequency table is displayed correctly", {
 })
 
 testthat::test_that('Descriptives works old scenario', {
-    w <- as.factor(rep(c("1", "2","3"), each=4))
-    x <- as.factor(rep(c("a", "b","c"), 4))
-    y <- c(4,4,3,4,8,0,9,8,8,6,0,3)
-    z <- c(NA,NaN,3,-1,-2,1,1,-2,2,-2,-3,3)
+    w <- as.factor(rep(c("1", "2", "3"), each = 4))
+    x <- as.factor(rep(c("a", "b", "c"), 4))
+    y <- c(4, 4, 3, 4, 8, 0, 9, 8, 8, 6, 0, 3)
+    z <- c(NA, NaN, 3, -1, -2, 1, 1, -2, 2, -2, -3, 3)
 
-    data <- data.frame(w=w, x=x, y=y, z=z)
-    desc <- jmv::descriptives(data, vars=c("w", "y", "z"), splitBy = "x",
-                              freq=TRUE, median=TRUE, mode=TRUE, skew=TRUE,
-                              kurt=TRUE, pc=TRUE)
+    data <- data.frame(w = w, x = x, y = y, z = z)
+    desc <- jmv::descriptives(
+        data,
+        vars = c("w", "y", "z"),
+        splitBy = "x",
+        freq = TRUE,
+        median = TRUE,
+        mode = TRUE,
+        skew = TRUE,
+        kurt = TRUE,
+        pc = TRUE
+    )
 
     freq <- desc$frequencies[[1]]$asDF
     descr <- desc$descriptives$asDF
@@ -222,7 +259,6 @@ testthat::test_that('Descriptives works old scenario', {
     testthat::expect_equal(-2, descr$`z[modeb]`, tolerance = 1e-3)
     testthat::expect_equal(4, descr$`y[mina]`, tolerance = 1e-3)
     testthat::expect_equal(2.25, descr$`y[perc1c]`, tolerance = 1e-3)
-
 })
 
 testthat::test_that('Histogram is created for nominal numeric variable', {
@@ -235,7 +271,7 @@ testthat::test_that('Histogram is created for nominal numeric variable', {
 
     attr(data$a2, 'values') <- 1:10
 
-    desc <- jmv::descriptives(data, c('a1', 'a2'), hist=TRUE)
+    desc <- jmv::descriptives(data, c('a1', 'a2'), hist = TRUE)
 
     testthat::expect_true(desc$plots[[2]]$.render())
 })
@@ -256,7 +292,7 @@ testthat::test_that('Sensible error message is provided when splitBy var contain
     )
 
     testthat::expect_error(
-        jmv::descriptives(formula=var~group, data=df),
+        jmv::descriptives(formula = var ~ group, data = df),
         "The 'split by' variable 'group' contains no data."
     )
 })
@@ -271,12 +307,15 @@ testthat::test_that('Extreme values table works', {
     extremeN <- 5
 
     r <- jmv::descriptives(
-        data=df, vars=c("numeric", "ordinal", "character"), extreme=TRUE, extremeN=extremeN
+        data = df,
+        vars = c("numeric", "ordinal", "character"),
+        extreme = TRUE,
+        extremeN = extremeN
     )
 
     e1 <- r$extremeValues[[1]]$asDF
-    lowest <- head(df[order(df$numeric),], extremeN)
-    highest <- head(df[order(-df$numeric),], extremeN)
+    lowest <- head(df[order(df$numeric), ], extremeN)
+    highest <- head(df[order(-df$numeric), ], extremeN)
     casesExpected <- c(rownames(highest), rownames(lowest))
     valuesExpected <- c(highest$numeric, lowest$numeric)
 
@@ -284,8 +323,8 @@ testthat::test_that('Extreme values table works', {
     testthat::expect_equal(e1$value, valuesExpected)
 
     e2 <- r$extremeValues[[2]]$asDF
-    lowest <- head(df[order(df$ordinal),], extremeN)
-    highest <- head(df[order(-df$ordinal),], extremeN)
+    lowest <- head(df[order(df$ordinal), ], extremeN)
+    highest <- head(df[order(-df$ordinal), ], extremeN)
     casesExpected <- c(rownames(highest), rownames(lowest))
     valuesExpected <- c(highest$ordinal, lowest$ordinal)
 
@@ -300,7 +339,7 @@ testthat::test_that('Extreme values provides note if number of cases is lower th
     df <- data.frame(x = c(1.1, 2.3, 3.1))
     extremeN <- 5
 
-    r <- jmv::descriptives(data=df, vars="x", extreme=TRUE, extremeN=extremeN)
+    r <- jmv::descriptives(data = df, vars = "x", extreme = TRUE, extremeN = extremeN)
     e <- r$extremeValues[[1]]
 
     testthat::expect_match(
@@ -318,21 +357,45 @@ params <- list(
     list(
         weights = NULL,
         expected = list(
-            n=10, mean=3, median=3, sum=30, sd=1.491, variance=2.222, min=1, max=5, range=4
+            n = 10,
+            mean = 3,
+            median = 3,
+            sum = 30,
+            sd = 1.491,
+            variance = 2.222,
+            min = 1,
+            max = 5,
+            range = 4
         ),
         info = "No weights"
     ),
     list(
         weights = rep(1:2, 5),
         expected = list(
-            n=15, mean=3, median=3, sum=45, sd=1.464, variance=2.143, min=1, max=5, range=4
+            n = 15,
+            mean = 3,
+            median = 3,
+            sum = 45,
+            sd = 1.464,
+            variance = 2.143,
+            min = 1,
+            max = 5,
+            range = 4
         ),
         info = "Integer weights"
     ),
     list(
         weights = c(0.3, 0.5, 0.6, 0.9, 1, 1.2, 1.4, 1.6, 1.8, 2),
         expected = list(
-            n=11.3, mean=3.664, median=4, sum=41.4, sd=1.32, variance=1.74, min=1, max=5, range=4
+            n = 11.3,
+            mean = 3.664,
+            median = 4,
+            sum = 41.4,
+            sd = 1.32,
+            variance = 1.74,
+            min = 1,
+            max = 5,
+            range = 4
         ),
         info = "Non-integer weights"
     )
@@ -340,13 +403,18 @@ params <- list(
 testthat::test_that("Weighted descriptives with no grouping variable works", {
     for (param in params) {
         # GIVEN a data frame with a numeric variable
-        df <- data.frame(x = rep(1:5, each=2))
+        df <- data.frame(x = rep(1:5, each = 2))
         # AND weights added to the data frame
         attr(df, "jmv-weights") <- param$weights
 
         # WHEN the descriptives are calculated
         desc <- jmv::descriptives(
-            data = df, vars = "x", desc="rows", sum = TRUE, variance = TRUE, range = TRUE
+            data = df,
+            vars = "x",
+            desc = "rows",
+            sum = TRUE,
+            variance = TRUE,
+            range = TRUE
         )
 
         # THEN the statistics are calculated correctly
@@ -356,7 +424,12 @@ testthat::test_that("Weighted descriptives with no grouping variable works", {
         testthat::expect_equal(r$median, param$expected$median, info = param$info)
         testthat::expect_equal(r$sum, param$expected$sum, info = param$info)
         testthat::expect_equal(r$sd, param$expected$sd, tolerance = 1e-3, info = param$info)
-        testthat::expect_equal(r$variance, param$expected$variance, tolerance = 1e-3, info = param$info)
+        testthat::expect_equal(
+            r$variance,
+            param$expected$variance,
+            tolerance = 1e-3,
+            info = param$info
+        )
         testthat::expect_equal(r$min, param$expected$min, info = param$info)
         testthat::expect_equal(r$max, param$expected$max, info = param$info)
         testthat::expect_equal(r$range, param$expected$range, info = param$info)
@@ -365,7 +438,7 @@ testthat::test_that("Weighted descriptives with no grouping variable works", {
 
 testthat::test_that("Weighted descriptives with grouping variable works", {
     # GIVEN a data frame with a numeric variable and a grouping variable
-    df <- data.frame(group = rep(LETTERS[1:2], length.out=10), x = rep(1:5, each=2))
+    df <- data.frame(group = rep(LETTERS[1:2], length.out = 10), x = rep(1:5, each = 2))
     # AND weights added to the data frame
     attr(df, "jmv-weights") <- rep(1:2, 5)
 
@@ -373,8 +446,8 @@ testthat::test_that("Weighted descriptives with grouping variable works", {
     desc <- jmv::descriptives(
         data = df,
         vars = "x",
-        splitBy="group",
-        desc="rows",
+        splitBy = "group",
+        desc = "rows",
         sum = TRUE,
         variance = TRUE,
         range = TRUE
@@ -401,11 +474,11 @@ testthat::test_that("Splitting by multiple variables works for normal table", {
     desc <- descriptives(
         formula = len ~ supp:dose,
         data,
-        median=FALSE,
-        min=FALSE,
-        max=FALSE,
-        missing=FALSE,
-        sd=FALSE,
+        median = FALSE,
+        min = FALSE,
+        max = FALSE,
+        missing = FALSE,
+        sd = FALSE,
     )
 
     # THEN the descriptives are calculated correctly
@@ -432,12 +505,12 @@ testthat::test_that("Splitting by multiple variables works for transposed table"
     desc <- descriptives(
         formula = len ~ supp:dose,
         data,
-        median=FALSE,
-        min=FALSE,
-        max=FALSE,
-        missing=FALSE,
-        sd=FALSE,
-        desc="rows"
+        median = FALSE,
+        min = FALSE,
+        max = FALSE,
+        missing = FALSE,
+        sd = FALSE,
+        desc = "rows"
     )
 
     # THEN the descriptives are calculated correctly

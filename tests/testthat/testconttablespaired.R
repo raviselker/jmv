@@ -5,7 +5,7 @@ testthat::test_that('All options in the contTablesPaired work (sunny)', {
         `1st survey` = c('Approve', 'Approve', 'Disapprove', 'Disapprove'),
         `2nd survey` = c('Approve', 'Disapprove', 'Approve', 'Disapprove'),
         `Counts` = c(794, 150, 86, 570),
-        check.names=FALSE
+        check.names = FALSE
     )
 
     r <- jmv::contTablesPaired(
@@ -24,10 +24,12 @@ testthat::test_that('All options in the contTablesPaired work (sunny)', {
     testthat::expect_equal(c('Approve', 'Disapprove', 'Total'), contTable[['1st survey']])
     testthat::expect_equal(c('Count', 'Count', 'Count'), contTable[['type[count]']])
     testthat::expect_equal(
-        c('% within row', '% within row', '% within row'), contTable[['type[pcRow]']]
+        c('% within row', '% within row', '% within row'),
+        contTable[['type[pcRow]']]
     )
     testthat::expect_equal(
-        c('% within column', '% within column', '% within column'), contTable[['type[pcCol]']]
+        c('% within column', '% within column', '% within column'),
+        contTable[['type[pcCol]']]
     )
     testthat::expect_equal(c(794, 86, 880), contTable[['1[count]']])
     testthat::expect_equal(c(0.841, 0.131, 0.55), contTable[['1[pcRow]']], tolerance = 1e-3)
@@ -36,7 +38,6 @@ testthat::test_that('All options in the contTablesPaired work (sunny)', {
     testthat::expect_equal(c(0.159, 0.869, 0.45), contTable[['2[pcRow]']], tolerance = 1e-3)
     testthat::expect_equal(c(0.208, 0.792, 1), contTable[['2[pcCol]']], tolerance = 1e-3)
     testthat::expect_equal(c(944, 656, 1600), contTable[['.total[count]']])
-
 
     # Test the McNemar test table
     testTable <- r$test$asDF

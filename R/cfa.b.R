@@ -1,4 +1,3 @@
-
 #' @importFrom jmvcore .
 cfaClass <- R6::R6Class(
     "cfaClass",
@@ -6,29 +5,28 @@ cfaClass <- R6::R6Class(
     #### Active bindings ----
     active = list(
         dataProcessed = function() {
-            if (is.null(private$.dataProcessed))
-                private$.dataProcessed <- private$.cleanData()
+            if (is.null(private$.dataProcessed)) private$.dataProcessed <- private$.cleanData()
 
             return(private$.dataProcessed)
         },
         model = function() {
-            if (is.null(private$.model))
-                private$.model <- private$.computeModel()
+            if (is.null(private$.model)) private$.model <- private$.computeModel()
 
             return(private$.model)
         },
         estimates = function() {
             if (is.null(private$.estimates)) {
                 private$.estimates <- lavaan::parameterestimates(
-                    self$model, standardized = TRUE, level = self$options$ciWidth / 100
+                    self$model,
+                    standardized = TRUE,
+                    level = self$options$ciWidth / 100
                 )
             }
 
             return(private$.estimates)
         },
         fitMeasures = function() {
-            if (is.null(private$.fitMeasures))
-                private$.fitMeasures <- private$.computeFitMeasures()
+            if (is.null(private$.fitMeasures)) private$.fitMeasures <- private$.computeFitMeasures()
 
             return(private$.fitMeasures)
         },
@@ -41,7 +39,9 @@ cfaClass <- R6::R6Class(
         modIndices = function() {
             if (is.null(private$.modIndices)) {
                 private$.modIndices <- lavaan::modificationIndices(
-                    self$model, sort.=FALSE, minimum.value=0
+                    self$model,
+                    sort. = FALSE,
+                    minimum.value = 0
                 )
             }
 
@@ -126,126 +126,130 @@ cfaClass <- R6::R6Class(
             rowNo <- 1
 
             ciWidth <- self$options$ciWidth
-            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth=ciWidth)
+            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth = ciWidth)
 
             table$getColumn('lower')$setSuperTitle(ciWidthTitle)
             table$getColumn('upper')$setSuperTitle(ciWidthTitle)
 
             for (i in seq_along(factors)) {
-
                 vars <- factors[[i]]$vars
 
                 for (j in seq_along(vars)) {
-
                     factorName <- factors[[i]]$label
                     var <- vars[j]
 
-                    if ( ! self$options$constrain == "facVar" && j == 1) {
+                    if (!self$options$constrain == "facVar" && j == 1) {
+                        row <- list(
+                            "factor" = factorName,
+                            "indicator" = var,
+                            "est" = 1,
+                            "se" = '',
+                            "z" = '',
+                            "p" = '',
+                            "lower" = '',
+                            "upper" = ''
+                        )
 
-                        row <- list("factor"=factorName, "indicator"=var, "est"=1, "se"='',
-                                    "z"='', "p"='', "lower"='', "upper"='')
-
-                        table$addRow(rowKey=rowNo, values=row)
-                        table$addFootnote(rowKey=rowNo, 'est', .('fixed parameter'))
-
+                        table$addRow(rowKey = rowNo, values = row)
+                        table$addFootnote(rowKey = rowNo, 'est', .('fixed parameter'))
                     } else {
-
-                        row <- list("factor"=factorName, "indicator"=var)
-                        table$addRow(rowKey=rowNo, values=row)
-
+                        row <- list("factor" = factorName, "indicator" = var)
+                        table$addRow(rowKey = rowNo, values = row)
                     }
 
-                    if (j == 1)
-                        table$addFormat(rowNo=rowNo, col=1, Cell.BEGIN_GROUP)
+                    if (j == 1) table$addFormat(rowNo = rowNo, col = 1, Cell.BEGIN_GROUP)
 
                     rowNo <- rowNo + 1
                 }
             }
         },
         .initFactorCovTable = function() {
-
             table <- self$results$factorEst$factorCov
             factors <- sapply(self$options$factors, function(x) x$label)
             rowNo <- 1
 
             ciWidth <- self$options$ciWidth
-            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth=ciWidth)
+            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth = ciWidth)
 
             table$getColumn('lower')$setSuperTitle(ciWidthTitle)
             table$getColumn('upper')$setSuperTitle(ciWidthTitle)
 
-            if (length(factors) == 0)
-                return()
+            if (length(factors) == 0) return()
 
             for (i in 1:length(factors)) {
-
                 for (j in i:length(factors)) {
-
-                    row <- list("factor1"=factors[i], "factor2"=factors[j])
+                    row <- list("factor1" = factors[i], "factor2" = factors[j])
 
                     if (self$options$constrain == "facVar" && j == i) {
+                        row <- list(
+                            "factor1" = factors[i],
+                            "factor2" = factors[j],
+                            "est" = 1,
+                            "se" = '',
+                            "z" = '',
+                            "p" = '',
+                            "lower" = '',
+                            "upper" = '',
+                            "stdEst" = ''
+                        )
 
-                        row <- list("factor1"=factors[i], "factor2"=factors[j], "est"=1, "se"='',
-                                    "z"='', "p"='', "lower"='', "upper"='', "stdEst"='')
-
-                        table$addRow(rowKey=rowNo, values=row)
-                        table$addFootnote(rowKey=rowNo, 'est', .('fixed parameter'))
-
+                        table$addRow(rowKey = rowNo, values = row)
+                        table$addFootnote(rowKey = rowNo, 'est', .('fixed parameter'))
                     } else {
-
-                        row <- list("factor1"=factors[i], "factor2"=factors[j])
-                        table$addRow(rowKey=rowNo, values=row)
-
+                        row <- list("factor1" = factors[i], "factor2" = factors[j])
+                        table$addRow(rowKey = rowNo, values = row)
                     }
 
-                    if (i == j)
-                        table$addFormat(rowNo=rowNo, col=1, Cell.BEGIN_GROUP)
+                    if (i == j) table$addFormat(rowNo = rowNo, col = 1, Cell.BEGIN_GROUP)
 
                     rowNo <- rowNo + 1
                 }
             }
         },
         .initFactorInterceptTable = function() {
-
             table <- self$results$factorEst$factorIntercept
             factors <- sapply(self$options$factors, function(x) x$label)
 
             ciWidth <- self$options$ciWidth
-            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth=ciWidth)
+            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth = ciWidth)
 
             table$getColumn('lower')$setSuperTitle(ciWidthTitle)
             table$getColumn('upper')$setSuperTitle(ciWidthTitle)
 
             for (i in 1:length(factors)) {
+                row <- list(
+                    "factor" = factors[i],
+                    "est" = 1,
+                    "se" = '',
+                    "z" = '',
+                    "p" = '',
+                    "lower" = '',
+                    "upper" = '',
+                    "stdEst" = ''
+                )
 
-                row <- list("factor"=factors[i], "est"=1, "se"='', "z"='',
-                            "p"='', "lower"='', "upper"='', "stdEst"='')
-
-                table$addRow(rowKey=i, values=row)
-                table$addFootnote(rowKey=i, 'est', .('fixed parameter'))
+                table$addRow(rowKey = i, values = row)
+                table$addFootnote(rowKey = i, 'est', .('fixed parameter'))
             }
         },
         .initResCovTable = function() {
-
             table <- self$results$resEst$resCov
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
             resCov <- self$options$resCov
             rowNo <- 1
 
             ciWidth <- self$options$ciWidth
-            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth=ciWidth)
+            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth = ciWidth)
 
             table$getColumn('lower')$setSuperTitle(ciWidthTitle)
             table$getColumn('upper')$setSuperTitle(ciWidthTitle)
 
-            if (length(vars) == 0)
-                return()
+            if (length(vars) == 0) return()
 
             varsMatrix <- matrix(0, nrow = length(vars), ncol = length(vars))
             diag(varsMatrix) <- 1
 
             for (i in seq_along(resCov)) {
-
                 index1 <- which(vars == resCov[[i]][[1]])
                 index2 <- which(vars == resCov[[i]][[2]])
 
@@ -255,76 +259,70 @@ cfaClass <- R6::R6Class(
                     index2 <- index1Temp
                 }
 
-                varsMatrix[index1,index2] <- 1
+                varsMatrix[index1, index2] <- 1
             }
 
             private$estResCov <- varsMatrix
 
             for (i in 1:nrow(varsMatrix)) {
-
                 for (j in i:ncol(varsMatrix)) {
+                    if (varsMatrix[i, j] == 1) {
+                        row <- list("var1" = vars[i], "var2" = vars[j])
+                        table$addRow(rowKey = rowNo, values = row)
 
-                    if (varsMatrix[i,j] == 1) {
-
-                        row <- list("var1"=vars[i], "var2"=vars[j])
-                        table$addRow(rowKey=rowNo, values=row)
-
-                        if (i == j)
-                            table$addFormat(rowNo=rowNo, col=1, Cell.BEGIN_GROUP)
+                        if (i == j) table$addFormat(rowNo = rowNo, col = 1, Cell.BEGIN_GROUP)
 
                         rowNo <- rowNo + 1
-
                     }
                 }
             }
         },
         .initResInterceptTable = function() {
-
             table <- self$results$resEst$resIntercept
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
 
             ciWidth <- self$options$ciWidth
-            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth=ciWidth)
+            ciWidthTitle <- jmvcore::format(.('{ciWidth}% Confidence Interval'), ciWidth = ciWidth)
 
             table$getColumn('lower')$setSuperTitle(ciWidthTitle)
             table$getColumn('upper')$setSuperTitle(ciWidthTitle)
 
-            for (i in seq_along(vars))
-                table$addRow(rowKey=i, values=list('var'=vars[i]))
-
+            for (i in seq_along(vars)) table$addRow(rowKey = i, values = list('var' = vars[i]))
         },
         .initCorResTable = function() {
-
             table <- self$results$modelPerformance$corRes
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
 
             for (i in seq_along(vars))
-                table$addColumn(name=jmvcore::toB64(vars[i]), title=vars[i], type='number', format='zto')
+                table$addColumn(
+                    name = jmvcore::toB64(vars[i]),
+                    title = vars[i],
+                    type = 'number',
+                    format = 'zto'
+                )
 
             for (i in seq_along(vars))
-                table$addRow(rowKey=jmvcore::toB64(vars[i]), values=list(var=vars[i]))
+                table$addRow(rowKey = jmvcore::toB64(vars[i]), values = list(var = vars[i]))
 
             for (i in seq_along(vars)) {
                 row <- list()
                 for (j in 1:i) {
                     row[[jmvcore::toB64(vars[j])]] <- ''
                 }
-                table$setRow(rowNo=i, values=row)
+                table$setRow(rowNo = i, values = row)
             }
-
         },
         .initResCovModTable = function() {
-
             table <- self$results$modelPerformance$modIndices$resCovMod
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
 
             for (i in seq_along(vars)) {
-                table$addColumn(name=jmvcore::toB64(vars[i]), title=vars[i], type='number')
-                table$addColumn(name=jmvcore::toB64(vars[i]), title=vars[i], type='number')
+                table$addColumn(name = jmvcore::toB64(vars[i]), title = vars[i], type = 'number')
+                table$addColumn(name = jmvcore::toB64(vars[i]), title = vars[i], type = 'number')
             }
 
             for (i in seq_along(vars)) {
-                table$addRow(rowKey=jmvcore::toB64(vars[i]), values=list('var'=vars[i]))
+                table$addRow(rowKey = jmvcore::toB64(vars[i]), values = list('var' = vars[i]))
             }
 
             varsMatrix <- private$estResCov
@@ -334,47 +332,50 @@ cfaClass <- R6::R6Class(
             for (i in seq_along(vars)) {
                 row <- list()
                 for (j in seq_along(vars)) {
-                    if (varsMatrix[i,j] == 0) {
+                    if (varsMatrix[i, j] == 0) {
                         row[[jmvcore::toB64(vars[j])]] <- ''
                     }
                 }
-                table$setRow(rowNo=i, values=row)
+                table$setRow(rowNo = i, values = row)
             }
         },
         .initFactorLoadingsModTable = function() {
-
             table <- self$results$modelPerformance$modIndices$factorLoadingsMod
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
             factors <- sapply(self$options$factors, function(x) x$label)
 
-            if (length(factors) <= 1)
-                table$setVisible(visible=FALSE)
+            if (length(factors) <= 1) table$setVisible(visible = FALSE)
 
-            if (length(vars) == 0)
-                return()
+            if (length(vars) == 0) return()
 
             for (i in seq_along(factors)) {
-                table$addColumn(name=jmvcore::toB64(factors[i]), title=factors[i], type='number')
-                table$addColumn(name=jmvcore::toB64(factors[i]), title=factors[i], type='number')
+                table$addColumn(
+                    name = jmvcore::toB64(factors[i]),
+                    title = factors[i],
+                    type = 'number'
+                )
+                table$addColumn(
+                    name = jmvcore::toB64(factors[i]),
+                    title = factors[i],
+                    type = 'number'
+                )
             }
 
             for (i in seq_along(vars)) {
-                table$addRow(rowKey=jmvcore::toB64(vars[i]), values=list('var'=vars[i]))
+                table$addRow(rowKey = jmvcore::toB64(vars[i]), values = list('var' = vars[i]))
             }
 
             for (i in seq_along(vars)) {
-
                 row <- list()
 
                 for (j in seq_along(factors)) {
-
                     v <- self$options$factors[[j]]$vars
 
                     if (vars[i] %in% v) {
                         row[[jmvcore::toB64(factors[j])]] <- ''
                     }
                 }
-                table$setRow(rowNo=i, values=row)
+                table$setRow(rowNo = i, values = row)
             }
         },
 
@@ -388,11 +389,9 @@ cfaClass <- R6::R6Class(
             rowNo <- 1
 
             for (i in seq_along(factors)) {
-
                 vars <- factors[[i]]$vars
 
                 for (j in seq_along(vars)) {
-
                     factorName <- jmvcore::toB64(factors[[i]]$label)
                     var <- jmvcore::toB64(vars[j])
 
@@ -402,24 +401,23 @@ cfaClass <- R6::R6Class(
                     row[['stdEst']] <- if (is.na(r[index, 'std.all'])) '' else r[index, 'std.all']
 
                     if (self$options$constrain == "facVar" || j != 1) {
-
                         row[['est']] <- r[index, 'est']
                         row[['se']] <- r[index, 'se']
                         row[['z']] <- if (is.na(r[index, 'z'])) '' else r[index, 'z']
                         row[['p']] <- if (is.na(r[index, 'pvalue'])) '' else r[index, 'pvalue']
-                        row[['lower']] <- if (is.na(r[index, 'ci.lower'])) '' else r[index, 'ci.lower']
-                        row[['upper']] <- if (is.na(r[index, 'ci.upper'])) '' else r[index, 'ci.upper']
-
+                        row[['lower']] <- if (is.na(r[index, 'ci.lower'])) '' else
+                            r[index, 'ci.lower']
+                        row[['upper']] <- if (is.na(r[index, 'ci.upper'])) '' else
+                            r[index, 'ci.upper']
                     }
 
-                    table$setRow(rowNo=rowNo, values=row)
+                    table$setRow(rowNo = rowNo, values = row)
 
                     rowNo <- rowNo + 1
                 }
             }
         },
         .populateFactorCovTable = function() {
-
             table <- self$results$factorEst$factorCov
             factors <- sapply(self$options$factors, function(x) x$label)
 
@@ -427,11 +425,8 @@ cfaClass <- R6::R6Class(
             rowNo <- 1
 
             for (i in 1:length(factors)) {
-
                 for (j in i:length(factors)) {
-
-                    if ( ! self$options$constrain == "facVar" || j != i) {
-
+                    if (!self$options$constrain == "facVar" || j != i) {
                         factor1 <- jmvcore::toB64(factors[i])
                         factor2 <- jmvcore::toB64(factors[j])
 
@@ -442,20 +437,21 @@ cfaClass <- R6::R6Class(
                         row[['se']] <- r[index, 'se']
                         row[['z']] <- if (is.na(r[index, 'z'])) '' else r[index, 'z']
                         row[['p']] <- if (is.na(r[index, 'pvalue'])) '' else r[index, 'pvalue']
-                        row[['lower']] <- if (is.na(r[index, 'ci.lower'])) '' else r[index, 'ci.lower']
-                        row[['upper']] <- if (is.na(r[index, 'ci.upper'])) '' else r[index, 'ci.upper']
-                        row[['stdEst']] <- if (is.na(r[index, 'std.all'])) '' else r[index, 'std.all']
+                        row[['lower']] <- if (is.na(r[index, 'ci.lower'])) '' else
+                            r[index, 'ci.lower']
+                        row[['upper']] <- if (is.na(r[index, 'ci.upper'])) '' else
+                            r[index, 'ci.upper']
+                        row[['stdEst']] <- if (is.na(r[index, 'std.all'])) '' else
+                            r[index, 'std.all']
 
-                        table$setRow(rowNo=rowNo, values=row)
+                        table$setRow(rowNo = rowNo, values = row)
                     }
 
                     rowNo <- rowNo + 1
-
                 }
             }
         },
         .populateFactorInterceptTable = function() {
-
             table <- self$results$factorEst$factorIntercept
             factors <- sapply(self$options$factors, function(x) x$label)
 
@@ -480,7 +476,6 @@ cfaClass <- R6::R6Class(
             # }
         },
         .populateResCovTable = function() {
-
             table <- self$results$resEst$resCov
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
 
@@ -489,11 +484,8 @@ cfaClass <- R6::R6Class(
             rowNo <- 1
 
             for (i in 1:nrow(varsMatrix)) {
-
                 for (j in i:ncol(varsMatrix)) {
-
-                    if (varsMatrix[i,j] == 1) {
-
+                    if (varsMatrix[i, j] == 1) {
                         var1 <- jmvcore::toB64(vars[i])
                         var2 <- jmvcore::toB64(vars[j])
 
@@ -504,27 +496,27 @@ cfaClass <- R6::R6Class(
                         row[['se']] <- r[index, 'se']
                         row[['z']] <- if (is.na(r[index, 'z'])) '' else r[index, 'z']
                         row[['p']] <- if (is.na(r[index, 'pvalue'])) '' else r[index, 'pvalue']
-                        row[['lower']] <- if (is.na(r[index, 'ci.lower'])) '' else r[index, 'ci.lower']
-                        row[['upper']] <- if (is.na(r[index, 'ci.upper'])) '' else r[index, 'ci.upper']
-                        row[['stdEst']] <- if (is.na(r[index, 'std.all'])) '' else r[index, 'std.all']
+                        row[['lower']] <- if (is.na(r[index, 'ci.lower'])) '' else
+                            r[index, 'ci.lower']
+                        row[['upper']] <- if (is.na(r[index, 'ci.upper'])) '' else
+                            r[index, 'ci.upper']
+                        row[['stdEst']] <- if (is.na(r[index, 'std.all'])) '' else
+                            r[index, 'std.all']
 
-                        table$setRow(rowNo=rowNo, values=row)
+                        table$setRow(rowNo = rowNo, values = row)
 
                         rowNo <- rowNo + 1
-
                     }
                 }
             }
         },
         .populateResInterceptTable = function() {
-
             table <- self$results$resEst$resIntercept
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
 
             r <- self$estimates
 
             for (i in 1:length(vars)) {
-
                 var <- jmvcore::toB64(vars[i])
 
                 index <- which(r$lhs == var & r$rhs == '')
@@ -538,11 +530,10 @@ cfaClass <- R6::R6Class(
                 row[['upper']] <- if (is.na(r[index, 'ci.upper'])) '' else r[index, 'ci.upper']
                 row[['stdEst']] <- if (is.na(r[index, 'std.all'])) '' else r[index, 'std.all']
 
-                table$setRow(rowNo=i, values=row)
+                table$setRow(rowNo = i, values = row)
             }
         },
         .populateFitMeasuresTable = function() {
-
             table <- self$results$modelFit$fitMeasures
             r <- self$fitMeasures
 
@@ -556,10 +547,9 @@ cfaClass <- R6::R6Class(
             row[['rmseaLower']] <- as.numeric(r['rmsea.ci.lower'])
             row[['rmseaUpper']] <- as.numeric(r['rmsea.ci.upper'])
 
-            table$setRow(rowNo=1, values=row)
+            table$setRow(rowNo = 1, values = row)
         },
         .populateTestTable = function() {
-
             table <- self$results$modelFit$test
             r <- self$fitMeasures
 
@@ -568,10 +558,9 @@ cfaClass <- R6::R6Class(
             row[['df']] <- as.numeric(r['df'])
             row[['p']] <- as.numeric(r['pvalue'])
 
-            table$setRow(rowNo=1, values=row)
+            table$setRow(rowNo = 1, values = row)
         },
         .populateCorResTable = function() {
-
             table <- self$results$modelPerformance$corRes
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
             highlight <- self$options$hlCorRes
@@ -581,20 +570,17 @@ cfaClass <- R6::R6Class(
             for (i in 1:(length(vars) - 1)) {
                 row <- list()
                 highVars <- c()
-                for (j in (i+1):length(vars)) {
-                    row[[jmvcore::toB64(vars[j])]] <- r[i,j]
+                for (j in (i + 1):length(vars)) {
+                    row[[jmvcore::toB64(vars[j])]] <- r[i, j]
 
-                    if (abs(r[i,j]) > highlight)
-                        highVars <- c(highVars, jmvcore::toB64(vars[j]))
+                    if (abs(r[i, j]) > highlight) highVars <- c(highVars, jmvcore::toB64(vars[j]))
                 }
-                table$setRow(rowNo=i, values=row)
+                table$setRow(rowNo = i, values = row)
 
-                for (highVar in highVars)
-                    table$addFormat(col=highVar, rowNo=i, Cell.NEGATIVE)
+                for (highVar in highVars) table$addFormat(col = highVar, rowNo = i, Cell.NEGATIVE)
             }
         },
         .populateResCovModTable = function() {
-
             table <- self$results$modelPerformance$modIndices$resCovMod
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
             highlight <- self$options$hlMI
@@ -606,13 +592,10 @@ cfaClass <- R6::R6Class(
             varsMatrix[lower.tri(varsMatrix)] <- 0
 
             for (i in seq_along(vars)) {
-
                 row <- list()
                 highVars <- c()
                 for (j in seq_along(vars)) {
-
-                    if (varsMatrix[i,j] == 1) {
-
+                    if (varsMatrix[i, j] == 1) {
                         var1 <- jmvcore::toB64(vars[i])
                         var2 <- jmvcore::toB64(vars[j])
 
@@ -629,14 +612,12 @@ cfaClass <- R6::R6Class(
                         }
                     }
                 }
-                table$setRow(rowNo=i, values=row)
+                table$setRow(rowNo = i, values = row)
 
-                for (highVar in highVars)
-                    table$addFormat(col=highVar, rowNo=i, Cell.NEGATIVE)
+                for (highVar in highVars) table$addFormat(col = highVar, rowNo = i, Cell.NEGATIVE)
             }
         },
         .populateFactorLoadingsModTable = function() {
-
             table <- self$results$modelPerformance$modIndices$factorLoadingsMod
             vars <- unique(unlist(lapply(self$options$factors, function(x) x$vars)))
             factors <- sapply(self$options$factors, function(x) x$label)
@@ -645,16 +626,13 @@ cfaClass <- R6::R6Class(
             r <- self$modIndices
 
             for (i in seq_along(vars)) {
-
                 row <- list()
                 highVars <- c()
 
                 for (j in seq_along(factors)) {
-
                     v <- self$options$factors[[j]]$vars
 
-                    if ( ! (vars[i] %in% v)) {
-
+                    if (!(vars[i] %in% v)) {
                         fact <- jmvcore::toB64(factors[j])
                         var <- jmvcore::toB64(vars[i])
 
@@ -670,16 +648,14 @@ cfaClass <- R6::R6Class(
                         }
                     }
                 }
-                table$setRow(rowNo=i, values=row)
+                table$setRow(rowNo = i, values = row)
 
-                for (highVar in highVars)
-                    table$addFormat(col=highVar, rowNo=i, Cell.NEGATIVE)
+                for (highVar in highVars) table$addFormat(col = highVar, rowNo = i, Cell.NEGATIVE)
             }
         },
 
         #### Plot functions ----
         .preparePathDiagram = function() {
-
             fit <- self$model
 
             fit@ParTable$rhs <- jmvcore::fromB64(fit@ParTable$rhs)
@@ -692,13 +668,10 @@ cfaClass <- R6::R6Class(
             }
 
             image <- self$results$pathDiagram
-            image$setState(list(semPlotModel=semPlotModel))
-
+            image$setState(list(semPlotModel = semPlotModel))
         },
         .pathDiagram = function(image, theme, ...) {
-
-            if (is.null(image$state))
-                return(FALSE)
+            if (is.null(image$state)) return(FALSE)
 
             semPlotModel <- image$state$semPlotModel
 
@@ -709,19 +682,27 @@ cfaClass <- R6::R6Class(
             edgeColor <- theme$color[1]
 
             if (requireNamespace('semPlot', quietly = TRUE)) {
-
                 suppressWarnings({
-
-                    semPlot::semPaths(semPlotModel, intercepts = FALSE, residuals = FALSE, rotation = 4,
-                                      whatLabels = 'omit', mar = c(2,6,2,6), curve = .1, curvature = 30,
-                                      color = colors, edge.color = edgeColor, edge.width = 2,
-                                      bg = "transparent", sizeMan = 6,
-                                      sizeLat = 10, nCharNodes = 3, arrows = TRUE)
-
+                    semPlot::semPaths(
+                        semPlotModel,
+                        intercepts = FALSE,
+                        residuals = FALSE,
+                        rotation = 4,
+                        whatLabels = 'omit',
+                        mar = c(2, 6, 2, 6),
+                        curve = .1,
+                        curvature = 30,
+                        color = colors,
+                        edge.color = edgeColor,
+                        edge.width = 2,
+                        bg = "transparent",
+                        sizeMan = 6,
+                        sizeLat = 10,
+                        nCharNodes = 3,
+                        arrows = TRUE
+                    )
                 }) # suppressWarnings
-
             } else {
-
                 warning('The path diagram requires a working version of "semplot"')
                 # Now throw error
                 require('semPlot')
@@ -732,45 +713,35 @@ cfaClass <- R6::R6Class(
 
         #### Helper functions ----
         .ready = function() {
-
             factors <- self$options$factors
 
-            if (length(factors) < 1)
-                return(FALSE)
+            if (length(factors) < 1) return(FALSE)
 
             nVars <- lapply(factors, function(x) length(x$vars))
 
-            if (any(nVars < 1))
-                return(FALSE)
+            if (any(nVars < 1)) return(FALSE)
 
-            if (length(factors) == 1 && nVars <= 2)
-                return(FALSE)
+            if (length(factors) == 1 && nVars <= 2) return(FALSE)
 
             return(TRUE)
-
         },
         .cleanData = function() {
-
             vars <- unlist(self$options$factors)
 
             data <- list()
-            for (var in vars)
-                data[[jmvcore::toB64(var)]] <- jmvcore::toNumeric(self$data[[var]])
+            for (var in vars) data[[jmvcore::toB64(var)]] <- jmvcore::toNumeric(self$data[[var]])
 
             attr(data, 'row.names') <- seq_len(length(data[[1]]))
             attr(data, 'class') <- 'data.frame'
 
             return(data)
-
         },
         .lavaanify = function(B64 = TRUE) {
-
             factors <- self$options$factors
             resCov <- self$options$resCov
 
             model <- '# Latent variable definitions'
             for (i in seq_along(factors)) {
-
                 if (B64) {
                     vars <- jmvcore::toB64(factors[[i]]$vars)
                     factorName <- jmvcore::toB64(factors[[i]]$label)
@@ -779,16 +750,14 @@ cfaClass <- R6::R6Class(
                     factorName <- factors[[i]]$label
                 }
 
-                term <- paste(factorName, paste(vars, collapse = ' + '), sep=' =~ ')
-                model <- paste(model, term, sep='\n')
+                term <- paste(factorName, paste(vars, collapse = ' + '), sep = ' =~ ')
+                model <- paste(model, term, sep = '\n')
             }
 
             if (length(resCov) > 0) {
-
-                model <- paste(model,  '\n\n# Residual covariances')
+                model <- paste(model, '\n\n# Residual covariances')
 
                 for (i in seq_along(resCov)) {
-
                     pair <- resCov[[i]]
 
                     if (B64) {
@@ -799,8 +768,8 @@ cfaClass <- R6::R6Class(
                         pair2 <- pair[[2]]
                     }
 
-                    cov <- paste(pair1, pair2 , sep=' ~~ ')
-                    model <- paste(model, cov, sep='\n')
+                    cov <- paste(pair1, pair2, sep = ' ~~ ')
+                    model <- paste(model, cov, sep = '\n')
                 }
             }
 
@@ -813,7 +782,7 @@ cfaClass <- R6::R6Class(
         #'   the analysis will throw an error and stop.
         #'
         #' @return A list containing the result of the expression, the errors, and the warnings
-        .catchErrorsAndWarnings = function(expr, handleErrors=FALSE) {
+        .catchErrorsAndWarnings = function(expr, handleErrors = FALSE) {
             warnings <- list()
             errors <- list()
             result <- tryCatch(
@@ -831,10 +800,9 @@ cfaClass <- R6::R6Class(
                 }
             )
 
-            if (handleErrors && length(errors) > 0)
-                private$.handleErrors(errors)
+            if (handleErrors && length(errors) > 0) private$.handleErrors(errors)
 
-            return(list(result=result, errors=errors, warnings=warnings))
+            return(list(result = result, errors = errors, warnings = warnings))
         },
         #' Handle errors by throwing a new error
         #'
@@ -844,15 +812,16 @@ cfaClass <- R6::R6Class(
         },
         .handleError = function(error) {
             for (cfaError in cfaErrors) {
-                if (grepl(cfaError$originalMessage, error$message, fixed=TRUE)) {
+                if (grepl(cfaError$originalMessage, error$message, fixed = TRUE)) {
                     rlang::abort(
                         cfaError$message,
-                        class=cfaError$class,
-                        parent=error
+                        class = cfaError$class,
+                        parent = error
                     )
                 }
             }
 
             stop(error)
-        })
+        }
+    )
 )

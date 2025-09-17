@@ -1,23 +1,21 @@
-
 #' @importFrom jmvcore .
 contTablesClass <- R6::R6Class(
     "contTablesClass",
-    inherit=contTablesBase,
+    inherit = contTablesBase,
     #### Active bindings ----
     active = list(
         countsName = function() {
-            if ( ! is.null(self$options$counts)) {
+            if (!is.null(self$options$counts)) {
                 return(self$options$counts)
-            } else if ( ! is.null(attr(self$data, "jmv-weights-name"))) {
-                return (attr(self$data, "jmv-weights-name"))
+            } else if (!is.null(attr(self$data, "jmv-weights-name"))) {
+                return(attr(self$data, "jmv-weights-name"))
             }
             NULL
         }
     ),
-    private=list(
+    private = list(
         #### Init + run functions ----
-        .init=function() {
-
+        .init = function() {
             rowVarName <- self$options$rows
             colVarName <- self$options$cols
             layerNames <- self$options$layers
@@ -25,15 +23,15 @@ contTablesClass <- R6::R6Class(
 
             freqs <- self$results$freqs
             chiSq <- self$results$chiSq
-            nom   <- self$results$nom
-            odds  <- self$results$odds
+            nom <- self$results$nom
+            odds <- self$results$odds
             gamma <- self$results$gamma
-            taub  <- self$results$taub
-            mh  <- self$results$mh
+            taub <- self$results$taub
+            mh <- self$results$mh
 
             data <- private$.cleanData()
 
-            if ( ! is.null(countsName)) {
+            if (!is.null(countsName)) {
                 message <- ..('The data is weighted by the variable {}.', countsName)
                 type <- NoticeType$WARNING
 
@@ -44,71 +42,74 @@ contTablesClass <- R6::R6Class(
 
                 weightsNotice <- jmvcore::Notice$new(
                     self$options,
-                    name='.weights',
-                    type=type,
-                    content=message)
+                    name = '.weights',
+                    type = type,
+                    content = message
+                )
                 self$results$insert(1, weightsNotice)
             }
 
             reversed <- rev(layerNames)
             for (i in seq_along(reversed)) {
                 layer <- reversed[[i]]
-                freqs$addColumn(name=layer, type='text', combineBelow=TRUE)
-                chiSq$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
-                odds$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
-                nom$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
-                gamma$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
-                taub$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
-                mh$addColumn(index=i, name=layer, type='text', combineBelow=TRUE)
+                freqs$addColumn(name = layer, type = 'text', combineBelow = TRUE)
+                chiSq$addColumn(index = i, name = layer, type = 'text', combineBelow = TRUE)
+                odds$addColumn(index = i, name = layer, type = 'text', combineBelow = TRUE)
+                nom$addColumn(index = i, name = layer, type = 'text', combineBelow = TRUE)
+                gamma$addColumn(index = i, name = layer, type = 'text', combineBelow = TRUE)
+                taub$addColumn(index = i, name = layer, type = 'text', combineBelow = TRUE)
+                mh$addColumn(index = i, name = layer, type = 'text', combineBelow = TRUE)
             }
 
             # add the row column, containing the row variable
             # fill in dots, if no row variable specified
 
-            if ( ! is.null(rowVarName))
-                title <- rowVarName
-            else
-                title <- '.'
+            if (!is.null(rowVarName)) title <- rowVarName else title <- '.'
 
             freqs$addColumn(
-                name=title,
-                title=title,
-                type='text')
+                name = title,
+                title = title,
+                type = 'text'
+            )
 
             # add the column columns (from the column variable)
             # fill in dots, if no column variable specified
 
-            if ( ! is.null(colVarName)) {
+            if (!is.null(colVarName)) {
                 superTitle <- colVarName
                 levels <- base::levels(data[[colVarName]])
-            }
-            else {
+            } else {
                 superTitle <- '.'
                 levels <- c('.', '.')
             }
 
             countsType <- `if`(is.integer(data$.COUNTS), 'integer', 'number')
 
-            subNames  <- c('[count]', '[expected]', '[pcRow]', '[pcCol]', '[pcTot]')
-            subTitles <- c(.('Observed'), .('Expected'), .('% within row'), .('% within column'), .('% of total'))
-            visible   <- c('(obs)', '(exp)', '(pcRow)', '(pcCol)', '(pcTot)')
-            types     <- c(countsType, 'number', 'number', 'number', 'number')
-            formats   <- c('', '', 'pc', 'pc', 'pc')
+            subNames <- c('[count]', '[expected]', '[pcRow]', '[pcCol]', '[pcTot]')
+            subTitles <- c(
+                .('Observed'),
+                .('Expected'),
+                .('% within row'),
+                .('% within column'),
+                .('% of total')
+            )
+            visible <- c('(obs)', '(exp)', '(pcRow)', '(pcCol)', '(pcTot)')
+            types <- c(countsType, 'number', 'number', 'number', 'number')
+            formats <- c('', '', 'pc', 'pc', 'pc')
 
             # iterate over the sub rows
 
             for (j in seq_along(subNames)) {
                 subName <- subNames[[j]]
-                if (subName == '[count]')
-                   v <- '(obs && (exp || pcRow || pcCol || pcTot))'
-                else
+                if (subName == '[count]') v <- '(obs && (exp || pcRow || pcCol || pcTot))' else
                     v <- visible[j]
 
                 freqs$addColumn(
-                    name=paste0('type', subName),
-                    title='',
-                    type='text',
-                    visible=v)
+                    name = paste0('type', subName),
+                    title = '',
+                    type = 'text',
+                    visible = v
+                )
             }
 
             for (i in seq_along(levels)) {
@@ -117,12 +118,13 @@ contTablesClass <- R6::R6Class(
                 for (j in seq_along(subNames)) {
                     subName <- subNames[[j]]
                     freqs$addColumn(
-                        name=paste0(i, subName),
-                        title=level,
-                        superTitle=superTitle,
-                        type=types[j],
-                        format=formats[j],
-                        visible=visible[j])
+                        name = paste0(i, subName),
+                        title = level,
+                        superTitle = superTitle,
+                        type = types[j],
+                        format = formats[j],
+                        visible = visible[j]
+                    )
                 }
             }
 
@@ -130,110 +132,109 @@ contTablesClass <- R6::R6Class(
 
             if (self$options$obs) {
                 freqs$addColumn(
-                    name='.total[count]',
-                    title=.('Total'),
-                    type=countsType)
+                    name = '.total[count]',
+                    title = .('Total'),
+                    type = countsType
+                )
             }
 
             if (self$options$exp) {
                 freqs$addColumn(
-                    name='.total[exp]',
-                    title=.('Total'),
-                    type='number')
+                    name = '.total[exp]',
+                    title = .('Total'),
+                    type = 'number'
+                )
             }
 
             if (self$options$pcRow) {
                 freqs$addColumn(
-                    name='.total[pcRow]',
-                    title=.('Total'),
-                    type='number',
-                    format='pc')
+                    name = '.total[pcRow]',
+                    title = .('Total'),
+                    type = 'number',
+                    format = 'pc'
+                )
             }
 
             if (self$options$pcCol) {
                 freqs$addColumn(
-                    name='.total[pcCol]',
-                    title=.('Total'),
-                    type='number',
-                    format='pc')
+                    name = '.total[pcCol]',
+                    title = .('Total'),
+                    type = 'number',
+                    format = 'pc'
+                )
             }
 
             if (self$options$pcTot) {
                 freqs$addColumn(
-                    name='.total[pcTot]',
-                    title=.('Total'),
-                    type='number',
-                    format='pc')
+                    name = '.total[pcTot]',
+                    title = .('Total'),
+                    type = 'number',
+                    format = 'pc'
+                )
             }
 
             # populate the first column with levels of the row variable
 
             values <- list()
-            for (i in seq_along(subNames))
-                values[[paste0('type', subNames[i])]] <- subTitles[i]
+            for (i in seq_along(subNames)) values[[paste0('type', subNames[i])]] <- subTitles[i]
 
-            rows <- private$.grid(data=data, incRows=TRUE)
+            rows <- private$.grid(data = data, incRows = TRUE)
 
             nextIsNewGroup <- TRUE
 
             for (i in seq_len(nrow(rows))) {
-
                 for (name in colnames(rows)) {
                     value <- as.character(rows[i, name])
-                    if (value == '.total')
-                        value <- .('Total')
+                    if (value == '.total') value <- .('Total')
                     values[[name]] <- value
                 }
 
-                key <- paste0(rows[i,], collapse='`')
-                freqs$addRow(rowKey=key, values=values)
+                key <- paste0(rows[i, ], collapse = '`')
+                freqs$addRow(rowKey = key, values = values)
 
                 if (nextIsNewGroup) {
-                    freqs$addFormat(rowNo=i, 1, Cell.BEGIN_GROUP)
+                    freqs$addFormat(rowNo = i, 1, Cell.BEGIN_GROUP)
                     nextIsNewGroup <- FALSE
                 }
 
                 if (as.character(rows[i, name]) == '.total') {
-                    freqs$addFormat(rowNo=i, 1, Cell.BEGIN_END_GROUP)
+                    freqs$addFormat(rowNo = i, 1, Cell.BEGIN_END_GROUP)
                     nextIsNewGroup <- TRUE
-                    if (i > 1)
-                        freqs$addFormat(rowNo=i - 1, 1, Cell.END_GROUP)
+                    if (i > 1) freqs$addFormat(rowNo = i - 1, 1, Cell.END_GROUP)
                 }
             }
 
-            rows <- private$.grid(data=data, incRows=FALSE)
+            rows <- private$.grid(data = data, incRows = FALSE)
             values <- list()
 
             if (length(rows) == 0) {
-
-                chiSq$addRow(rowKey=1, values=list())
-                nom$addRow(rowKey=1, values=list())
-                odds$addRow(rowKey=1, values=list())
-                gamma$addRow(rowKey=1, values=list())
-                taub$addRow(rowKey=1, values=list())
-                mh$addRow(rowKey=1, values=list())
-
+                chiSq$addRow(rowKey = 1, values = list())
+                nom$addRow(rowKey = 1, values = list())
+                odds$addRow(rowKey = 1, values = list())
+                gamma$addRow(rowKey = 1, values = list())
+                taub$addRow(rowKey = 1, values = list())
+                mh$addRow(rowKey = 1, values = list())
             } else {
-
                 for (i in seq_len(nrow(rows))) {
-
                     for (name in dimnames(rows)[[2]]) {
                         value <- as.character(rows[i, name])
-                        if (value == '.total')
-                            value <- .('Total')
+                        if (value == '.total') value <- .('Total')
                         values[[name]] <- value
                     }
 
-                    chiSq$addRow(rowKey=i, values=values)
-                    nom$addRow(rowKey=i, values=values)
-                    odds$addRow(rowKey=i, values=values)
-                    gamma$addRow(rowKey=i, values=values)
-                    taub$addRow(rowKey=i, values=values)
-                    mh$addRow(rowKey=i, values=values)
+                    chiSq$addRow(rowKey = i, values = values)
+                    nom$addRow(rowKey = i, values = values)
+                    odds$addRow(rowKey = i, values = values)
+                    gamma$addRow(rowKey = i, values = values)
+                    taub$addRow(rowKey = i, values = values)
+                    mh$addRow(rowKey = i, values = values)
                 }
             }
 
-            ciText <- jmvcore::format(.('{ciWidth}% Confidence Intervals'), ciWidth=self$options$ciWidth)
+            ciText <- jmvcore::format(
+                .('{ciWidth}% Confidence Intervals'),
+                ciWidth = self$options$ciWidth
+            )
             odds$getColumn('cil[dp]')$setSuperTitle(ciText)
             odds$getColumn('ciu[dp]')$setSuperTitle(ciText)
             odds$getColumn('cil[lo]')$setSuperTitle(ciText)
@@ -245,39 +246,44 @@ contTablesClass <- R6::R6Class(
             gamma$getColumn('cil')$setSuperTitle(ciText)
             gamma$getColumn('ciu')$setSuperTitle(ciText)
 
-            private$.initPostHocTable(data=data)
+            private$.initPostHocTable(data = data)
             private$.initBarPlot()
         },
-        .run=function() {
-
+        .run = function() {
             rowVarName <- self$options$rows
             colVarName <- self$options$cols
             countsName <- self$options$counts
 
-            if (is.null(rowVarName) || is.null(colVarName))
-                return()
+            if (is.null(rowVarName) || is.null(colVarName)) return()
 
             data <- private$.cleanData()
 
             if (nlevels(data[[rowVarName]]) < 2)
-                jmvcore::reject(.("Row variable '{var}' contains fewer than 2 levels"), code='', var=rowVarName)
+                jmvcore::reject(
+                    .("Row variable '{var}' contains fewer than 2 levels"),
+                    code = '',
+                    var = rowVarName
+                )
             if (nlevels(data[[colVarName]]) < 2)
-                jmvcore::reject(.("Column variable '{var}' contains fewer than 2 levels"), code='', var=colVarName)
+                jmvcore::reject(
+                    .("Column variable '{var}' contains fewer than 2 levels"),
+                    code = '',
+                    var = colVarName
+                )
 
-            if ( ! is.null(data$.COUNTS)) {
-                if (any(data$.COUNTS < 0, na.rm=TRUE))
+            if (!is.null(data$.COUNTS)) {
+                if (any(data$.COUNTS < 0, na.rm = TRUE))
                     jmvcore::reject(.('Counts may not be negative'))
-                if (any(is.infinite(data$.COUNTS)))
-                    jmvcore::reject(.('Counts may not be infinite'))
+                if (any(is.infinite(data$.COUNTS))) jmvcore::reject(.('Counts may not be infinite'))
             }
 
             freqs <- self$results$freqs
             chiSq <- self$results$chiSq
-            nom   <- self$results$nom
-            odds  <- self$results$odds
+            nom <- self$results$nom
+            odds <- self$results$odds
             gamma <- self$results$gamma
-            taub  <- self$results$taub
-            mh    <- self$results$mh
+            taub <- self$results$taub
+            mh <- self$results$mh
 
             freqRowNo <- 1
             othRowNo <- 1
@@ -292,7 +298,8 @@ contTablesClass <- R6::R6Class(
                 } else {
                     groups <- c(.('Group 1'), .('Group 2'))
                 }
-            } else { # compare columns
+            } else {
+                # compare columns
                 if (!is.null(colVarName)) {
                     variable <- colVarName
                     groups <- base::levels(data[[colVarName]])
@@ -304,35 +311,28 @@ contTablesClass <- R6::R6Class(
             hypothesis <- self$options$hypothesis
 
             ## Hypothesis options checking
-            if (self$options$hypothesis == 'oneGreater')
-                Ha <- "greater"
-            else if (self$options$hypothesis == 'twoGreater')
-                Ha <- "less"
-            else
-                Ha <- "two.sided"
+            if (self$options$hypothesis == 'oneGreater') Ha <- "greater" else if (
+                self$options$hypothesis == 'twoGreater'
+            )
+                Ha <- "less" else Ha <- "two.sided"
 
             mats <- private$.matrices(data)
 
-            nRows  <- base::nlevels(data[[rowVarName]])
-            nCols  <- base::nlevels(data[[colVarName]])
+            nRows <- base::nlevels(data[[rowVarName]])
+            nCols <- base::nlevels(data[[colVarName]])
             nCells <- nRows * nCols
 
             ciWidth <- self$options$ciWidth / 100
 
             for (mat in mats) {
-
                 suppressWarnings({
-
-                    test <- try(chisq.test(mat, correct=FALSE))
-                    corr <- try(chisq.test(mat, correct=TRUE))
+                    test <- try(chisq.test(mat, correct = FALSE))
+                    corr <- try(chisq.test(mat, correct = TRUE))
                     asso <- vcd::assocstats(mat)
                     gamm <- vcdExtra::GKgamma(mat)
                     n <- sum(mat)
 
-                    if (base::inherits(test, 'try-error'))
-                        exp <- mat
-                    else
-                        exp <- test$expected
+                    if (base::inherits(test, 'try-error')) exp <- mat else exp <- test$expected
 
                     if (self$options$taub || self$options$mh) {
                         df <- as.data.frame(as.table(mat))
@@ -341,12 +341,11 @@ contTablesClass <- R6::R6Class(
 
                         if (self$options$taub) {
                             # this can be slow
-                            tau <- try(cor.test(v1, v2, method='kendall', conf.level=ciWidth))
+                            tau <- try(cor.test(v1, v2, method = 'kendall', conf.level = ciWidth))
                         }
                         if (self$options$mh) {
                             if (all(dim(mat) > 2))
-                                mhchi2 <- -1 # Mantel-Haenszel is only for 2xk tables
-                            else
+                                mhchi2 <- -1 else # Mantel-Haenszel is only for 2xk tables
                                 mhchi2 <- try((cor(v1, v2)^2) * (sum(df$Freq) - 1))
                         }
                     }
@@ -354,14 +353,19 @@ contTablesClass <- R6::R6Class(
                     zP <- NULL
                     dp <- NULL
                     lor <- NULL
-                    fish <- try(stats::fisher.test(mat, conf.level=ciWidth, alternative=Ha), silent=TRUE)
+                    fish <- try(
+                        stats::fisher.test(mat, conf.level = ciWidth, alternative = Ha),
+                        silent = TRUE
+                    )
 
                     if (base::inherits(fish, 'try-error')) {
                         # Monte Carlo simulation for p-value
-                        fish <- try(stats::fisher.test(mat, alternative=Ha, simulate.p.value=TRUE), silent=TRUE)
+                        fish <- try(
+                            stats::fisher.test(mat, alternative = Ha, simulate.p.value = TRUE),
+                            silent = TRUE
+                        )
                         MCpsimul <- TRUE
-                    } else
-                        MCpsimul <- FALSE
+                    } else MCpsimul <- FALSE
 
                     if (all(dim(mat) == 2) && all(rowSums(mat) > 0) && all(colSums(mat) > 0)) {
                         dp <- private$.diffProp(mat, Ha)
@@ -369,7 +373,6 @@ contTablesClass <- R6::R6Class(
                         rr <- private$.relativeRisk(mat)
                         zP <- dp[[1]]
                     }
-
                 }) # suppressWarnings
 
                 total <- sum(mat)
@@ -377,8 +380,7 @@ contTablesClass <- R6::R6Class(
                 rowTotals <- apply(mat, 1, sum)
 
                 for (rowNo in seq_len(nRows)) {
-
-                    values <- mat[rowNo,]
+                    values <- mat[rowNo, ]
                     rowTotal <- sum(values)
 
                     pcRow <- values / rowTotal
@@ -387,26 +389,26 @@ contTablesClass <- R6::R6Class(
                     names(values) <- paste0(1:nCols, '[count]')
                     values[['.total[count]']] <- rowTotal
 
-                    expValues <- exp[rowNo,]
+                    expValues <- exp[rowNo, ]
                     expValues <- as.list(expValues)
                     names(expValues) <- paste0(1:nCols, '[expected]')
-                    expValues[['.total[exp]']] <- sum(exp[rowNo,])
+                    expValues[['.total[exp]']] <- sum(exp[rowNo, ])
 
                     pcRow <- as.list(pcRow)
                     names(pcRow) <- paste0(1:nCols, '[pcRow]')
                     pcRow[['.total[pcRow]']] <- 1
 
-                    pcCol <- as.list(mat[rowNo,] / colTotals)
+                    pcCol <- as.list(mat[rowNo, ] / colTotals)
                     names(pcCol) <- paste0(1:nCols, '[pcCol]')
                     pcCol[['.total[pcCol]']] <- unname(rowTotals[rowNo] / total)
 
-                    pcTot <- as.list(mat[rowNo,] / total)
+                    pcTot <- as.list(mat[rowNo, ] / total)
                     names(pcTot) <- paste0(1:nCols, '[pcTot]')
-                    pcTot[['.total[pcTot]']] <- sum(mat[rowNo,] / total)
+                    pcTot[['.total[pcTot]']] <- sum(mat[rowNo, ] / total)
 
                     values <- c(values, expValues, pcRow, pcCol, pcTot)
 
-                    freqs$setRow(rowNo=freqRowNo, values=values)
+                    freqs$setRow(rowNo = freqRowNo, values = values)
                     freqRowNo <- freqRowNo + 1
                 }
 
@@ -439,34 +441,31 @@ contTablesClass <- R6::R6Class(
 
                 values <- c(values, expValues, pcRow, pcCol, pcTot)
 
-                freqs$setRow(rowNo=freqRowNo, values=values)
+                freqs$setRow(rowNo = freqRowNo, values = values)
                 freqRowNo <- freqRowNo + 1
 
                 # populate chi squared table
 
                 if (base::inherits(test, 'try-error')) {
                     values <- list(
-                        `value[chiSq]`=NaN,
-                        `df[chiSq]`='',
-                        `p[chiSq]`='',
-                        `value[chiSqCorr]`=NaN,
-                        `df[chiSqCorr]`='',
-                        `p[chiSqCorr]`='',
-                        `value[zProp]`=NaN,
-                        `df[zProp]`='',
-                        `p[zProp]`='',
-                        `value[likeRat]`=NaN,
-                        `df[likeRat]`='',
-                        `p[likeRat]`='',
-                        `value[fisher]`='',
-                        `p[fisher]`='',
-                        `value[N]`=n)
+                        `value[chiSq]` = NaN,
+                        `df[chiSq]` = '',
+                        `p[chiSq]` = '',
+                        `value[chiSqCorr]` = NaN,
+                        `df[chiSqCorr]` = '',
+                        `p[chiSqCorr]` = '',
+                        `value[zProp]` = NaN,
+                        `df[zProp]` = '',
+                        `p[zProp]` = '',
+                        `value[likeRat]` = NaN,
+                        `df[likeRat]` = '',
+                        `p[likeRat]` = '',
+                        `value[fisher]` = '',
+                        `p[fisher]` = '',
+                        `value[N]` = n
+                    )
                 } else {
-
-                    if (base::inherits(fish, 'try-error'))
-                        fishP <- NaN
-                    else
-                        fishP <- fish$p.value
+                    if (base::inherits(fish, 'try-error')) fishP <- NaN else fishP <- fish$p.value
 
                     if (is.null(zP)) {
                         zPstat <- NaN
@@ -477,157 +476,213 @@ contTablesClass <- R6::R6Class(
                     }
 
                     values <- list(
-                        `value[chiSq]`=unname(test$statistic),
-                        `df[chiSq]`=unname(test$parameter),
-                        `p[chiSq]`=unname(test$p.value),
-                        `value[chiSqCorr]`=unname(corr$statistic),
-                        `df[chiSqCorr]`=unname(corr$parameter),
-                        `p[chiSqCorr]`=unname(corr$p.value),
-                        `value[zProp]`=zPstat,
-                        `df[zProp]`='', # needed to keep table entry order
-                        `p[zProp]`=zPpval,
-                        `value[likeRat]`=asso$chisq_tests['Likelihood Ratio', 'X^2'],
-                        `df[likeRat]`=asso$chisq_tests['Likelihood Ratio', 'df'],
-                        `p[likeRat]`=asso$chisq_tests['Likelihood Ratio', 'P(> X^2)'],
-                        `value[fisher]`='',
-                        `p[fisher]`=fishP,
-                        `value[N]`=n)
+                        `value[chiSq]` = unname(test$statistic),
+                        `df[chiSq]` = unname(test$parameter),
+                        `p[chiSq]` = unname(test$p.value),
+                        `value[chiSqCorr]` = unname(corr$statistic),
+                        `df[chiSqCorr]` = unname(corr$parameter),
+                        `p[chiSqCorr]` = unname(corr$p.value),
+                        `value[zProp]` = zPstat,
+                        `df[zProp]` = '', # needed to keep table entry order
+                        `p[zProp]` = zPpval,
+                        `value[likeRat]` = asso$chisq_tests['Likelihood Ratio', 'X^2'],
+                        `df[likeRat]` = asso$chisq_tests['Likelihood Ratio', 'df'],
+                        `p[likeRat]` = asso$chisq_tests['Likelihood Ratio', 'P(> X^2)'],
+                        `value[fisher]` = '',
+                        `p[fisher]` = fishP,
+                        `value[N]` = n
+                    )
                 }
 
-                chiSq$setRow(rowNo=othRowNo, values=values)
+                chiSq$setRow(rowNo = othRowNo, values = values)
 
                 hypothesisTested <- ''
                 if (hypothesis == 'oneGreater')
-                    hypothesisTested <- jmvcore::format("H\u2090: {} P({}) > P({})", variable, groups[1], groups[2])
-                else if (hypothesis == 'twoGreater')
-                    hypothesisTested <- jmvcore::format("H\u2090: {} P({}) < P({})", variable, groups[1], groups[2])
-                else
-                    hypothesisTested <- 'two-sided'
+                    hypothesisTested <- jmvcore::format(
+                        "H\u2090: {} P({}) > P({})",
+                        variable,
+                        groups[1],
+                        groups[2]
+                    ) else if (hypothesis == 'twoGreater')
+                    hypothesisTested <- jmvcore::format(
+                        "H\u2090: {} P({}) < P({})",
+                        variable,
+                        groups[1],
+                        groups[2]
+                    ) else hypothesisTested <- 'two-sided'
 
                 if (is.null(zP))
-                    chiSq$addFootnote(rowNo=othRowNo, 'value[zProp]', .('z test only available for 2x2 tables'))
-                else if (hypothesis!="different")
-                    chiSq$addFootnote(rowNo=othRowNo, 'p[zProp]', hypothesisTested)
+                    chiSq$addFootnote(
+                        rowNo = othRowNo,
+                        'value[zProp]',
+                        .('z test only available for 2x2 tables')
+                    ) else if (hypothesis != "different")
+                    chiSq$addFootnote(rowNo = othRowNo, 'p[zProp]', hypothesisTested)
 
                 if (inherits(fish, 'htest') && all(dim(mat) == 2) && hypothesis != "different")
-                    chiSq$addFootnote(rowNo=othRowNo, 'p[fisher]', hypothesisTested)
+                    chiSq$addFootnote(rowNo = othRowNo, 'p[fisher]', hypothesisTested)
 
                 if (MCpsimul)
-                    chiSq$addFootnote(rowNo=othRowNo, 'p[fisher]', .('Monte Carlo simulation'))
+                    chiSq$addFootnote(rowNo = othRowNo, 'p[fisher]', .('Monte Carlo simulation'))
 
                 values <- list(
-                    `v[cont]`=asso$contingency,
-                    `v[phi]`=ifelse(is.na(asso$phi), NaN, asso$phi),
-                    `v[cra]`=asso$cramer)
-                nom$setRow(rowNo=othRowNo, values=values)
+                    `v[cont]` = asso$contingency,
+                    `v[phi]` = ifelse(is.na(asso$phi), NaN, asso$phi),
+                    `v[cra]` = asso$cramer
+                )
+                nom$setRow(rowNo = othRowNo, values = values)
 
                 values <- list(
-                    gamma=gamm$gamma,
-                    se=gamm$sigma,
-                    cil=gamm$CI[1],
-                    ciu=gamm$CI[2])
-                gamma$setRow(rowNo=othRowNo, values=values)
+                    gamma = gamm$gamma,
+                    se = gamm$sigma,
+                    cil = gamm$CI[1],
+                    ciu = gamm$CI[2]
+                )
+                gamma$setRow(rowNo = othRowNo, values = values)
 
                 if (self$options$taub) {
                     if (base::inherits(tau, 'try-error') || is.na(tau$estimate))
-                        values <- list(taub=NaN, t='', p='')
-                    else
+                        values <- list(taub = NaN, t = '', p = '') else
                         values <- list(
-                            taub=tau$estimate,
-                            t=unname(tau$statistic),
-                            p=tau$p.value)
-                    taub$setRow(rowNo=othRowNo, values=values)
+                            taub = tau$estimate,
+                            t = unname(tau$statistic),
+                            p = tau$p.value
+                        )
+                    taub$setRow(rowNo = othRowNo, values = values)
                 }
 
                 if (self$options$mh) {
                     if (base::inherits(mhchi2, 'try-error') || is.na(mhchi2) || mhchi2 == -1)
-                        values <- list(chi2=NaN, df='', p='')
-                    else
-                        values <- list(chi2=mhchi2, df=1, p=1-pchisq(mhchi2,1))
+                        values <- list(chi2 = NaN, df = '', p = '') else
+                        values <- list(chi2 = mhchi2, df = 1, p = 1 - pchisq(mhchi2, 1))
 
-                    mh$setRow(rowNo=othRowNo, values=values)
+                    mh$setRow(rowNo = othRowNo, values = values)
 
                     if (base::inherits(mhchi2, 'try-error') || is.na(mhchi2))
-                        mh$addFootnote(rowNo=othRowNo, 'chi2', .('Variables must have at least two levels'))
-                    else if (mhchi2 == -1)
-                        mh$addFootnote(rowNo=othRowNo, 'chi2', .('At least one variable must have two levels'))
+                        mh$addFootnote(
+                            rowNo = othRowNo,
+                            'chi2',
+                            .('Variables must have at least two levels')
+                        ) else if (mhchi2 == -1)
+                        mh$addFootnote(
+                            rowNo = othRowNo,
+                            'chi2',
+                            .('At least one variable must have two levels')
+                        )
                 }
 
-                if ( ! is.null(lor)) {
-                    ci <- confint(lor, level=ciWidth)
-                    odds$setRow(rowNo=othRowNo, list(
-                        `v[dp]`=dp$dp,
-                        `cil[dp]`=dp$lower,
-                        `ciu[dp]`=dp$upper,
-                        `v[lo]`=unname(lor[[1]]),
-                        `cil[lo]`=ci[1],
-                        `ciu[lo]`=ci[2],
-                        `v[o]`=exp(unname(lor[[1]])),
-                        `cil[o]`=exp(ci[1]),
-                        `ciu[o]`=exp(ci[2]),
-                        `v[rr]`=rr$rr,
-                        `cil[rr]`=rr$lower,
-                        `ciu[rr]`=rr$upper))
+                if (!is.null(lor)) {
+                    ci <- confint(lor, level = ciWidth)
+                    odds$setRow(
+                        rowNo = othRowNo,
+                        list(
+                            `v[dp]` = dp$dp,
+                            `cil[dp]` = dp$lower,
+                            `ciu[dp]` = dp$upper,
+                            `v[lo]` = unname(lor[[1]]),
+                            `cil[lo]` = ci[1],
+                            `ciu[lo]` = ci[2],
+                            `v[o]` = exp(unname(lor[[1]])),
+                            `cil[o]` = exp(ci[1]),
+                            `ciu[o]` = exp(ci[2]),
+                            `v[rr]` = rr$rr,
+                            `cil[rr]` = rr$lower,
+                            `ciu[rr]` = rr$upper
+                        )
+                    )
 
-                    footnote <- `if`(self$options$compare == 'rows', .('Rows compared'), .('Columns compared'))
-                    odds$addFootnote(rowNo=othRowNo, 'v[dp]', footnote)
-                    odds$addFootnote(rowNo=othRowNo, 'v[rr]', footnote)
+                    footnote <- `if`(
+                        self$options$compare == 'rows',
+                        .('Rows compared'),
+                        .('Columns compared')
+                    )
+                    odds$addFootnote(rowNo = othRowNo, 'v[dp]', footnote)
+                    odds$addFootnote(rowNo = othRowNo, 'v[rr]', footnote)
 
-                    if (any(mat == 0)){
-                        odds$addFootnote(rowNo=othRowNo, 'v[lo]', .('Haldane-Anscombe correction applied'))
-                        odds$addFootnote(rowNo=othRowNo, 'v[o]', .('Haldane-Anscombe correction applied'))
+                    if (any(mat == 0)) {
+                        odds$addFootnote(
+                            rowNo = othRowNo,
+                            'v[lo]',
+                            .('Haldane-Anscombe correction applied')
+                        )
+                        odds$addFootnote(
+                            rowNo = othRowNo,
+                            'v[o]',
+                            .('Haldane-Anscombe correction applied')
+                        )
                     }
                 } else {
-                    odds$setRow(rowNo=othRowNo, list(
-                        `v[dp]`=NaN, `cil[dp]`='', `ciu[dp]`='',
-                        `v[lo]`=NaN, `cil[lo]`='', `ciu[lo]`='',
-                        `v[o]`=NaN, `cil[o]`='', `ciu[o]`='',
-                        `v[rr]`=NaN, `cil[rr]`='', `ciu[rr]`=''))
-                    odds$addFootnote(rowNo=othRowNo, 'v[dp]', .('Available for 2x2 tables only'))
-                    odds$addFootnote(rowNo=othRowNo, 'v[lo]', .('Available for 2x2 tables only'))
-                    odds$addFootnote(rowNo=othRowNo, 'v[o]', .('Available for 2x2 tables only'))
-                    odds$addFootnote(rowNo=othRowNo, 'v[rr]', .('Available for 2x2 tables only'))
+                    odds$setRow(
+                        rowNo = othRowNo,
+                        list(
+                            `v[dp]` = NaN,
+                            `cil[dp]` = '',
+                            `ciu[dp]` = '',
+                            `v[lo]` = NaN,
+                            `cil[lo]` = '',
+                            `ciu[lo]` = '',
+                            `v[o]` = NaN,
+                            `cil[o]` = '',
+                            `ciu[o]` = '',
+                            `v[rr]` = NaN,
+                            `cil[rr]` = '',
+                            `ciu[rr]` = ''
+                        )
+                    )
+                    odds$addFootnote(rowNo = othRowNo, 'v[dp]', .('Available for 2x2 tables only'))
+                    odds$addFootnote(rowNo = othRowNo, 'v[lo]', .('Available for 2x2 tables only'))
+                    odds$addFootnote(rowNo = othRowNo, 'v[o]', .('Available for 2x2 tables only'))
+                    odds$addFootnote(rowNo = othRowNo, 'v[rr]', .('Available for 2x2 tables only'))
                 }
 
                 othRowNo <- othRowNo + 1
             }
-            private$.populatePostHocTable(data=data)
+            private$.populatePostHocTable(data = data)
         },
 
         #### PostHoc Table functions
-        .initPostHocTable = function(data=data) {
+        .initPostHocTable = function(data = data) {
             rowVarName <- self$options$rows
             colVarName <- self$options$cols
             layerNames <- self$options$layers
-            postHoc    <- self$results$postHoc
+            postHoc <- self$results$postHoc
 
-            subNamesPh    <- c('[resU]', '[resP]', '[resS]', '[resA]')
-            subTitlesPh   <- c(.('Unstandardized residuals'), .('Pearson residuals'), .('Standardized residuals'), .('Deviance residuals'))
-            visiblePh     <- c('(resU)', '(resP)', '(resS)', '(resA)')
-            typesPh       <- c('number', 'number', 'number', 'number')
-            formatsPh     <- c('', '', '', '')
+            subNamesPh <- c('[resU]', '[resP]', '[resS]', '[resA]')
+            subTitlesPh <- c(
+                .('Unstandardized residuals'),
+                .('Pearson residuals'),
+                .('Standardized residuals'),
+                .('Deviance residuals')
+            )
+            visiblePh <- c('(resU)', '(resP)', '(resS)', '(resA)')
+            typesPh <- c('number', 'number', 'number', 'number')
+            formatsPh <- c('', '', '', '')
 
             # For post-hoc tests
             if (self$options$get('resA'))
-                postHoc$setNote('notetodeviance', .('Deviance residuals are adjusted residuals from a Poisson GLM.'), init=FALSE)
+                postHoc$setNote(
+                    'notetodeviance',
+                    .('Deviance residuals are adjusted residuals from a Poisson GLM.'),
+                    init = FALSE
+                )
 
             # Add layer columns on top (if any)
             reversed <- rev(layerNames)
             for (layer in reversed) {
-                postHoc$addColumn(name=layer, type='text', combineBelow=TRUE)
+                postHoc$addColumn(name = layer, type = 'text', combineBelow = TRUE)
             }
 
             # Add the row variable column or a placeholder if absent
             rowTitle <- if (!is.null(rowVarName)) rowVarName else '.'
-            postHoc$addColumn(name=rowTitle, title=rowTitle, type='text')
+            postHoc$addColumn(name = rowTitle, title = rowTitle, type = 'text')
 
             # Determine the column variable levels or use placeholders
             if (!is.null(colVarName)) {
                 superTitle <- colVarName
-                levels     <- levels(data[[colVarName]])
+                levels <- levels(data[[colVarName]])
             } else {
                 superTitle <- '.'
-                levels     <- c('.', '.')
+                levels <- c('.', '.')
             }
 
             # Determine how many residuals are selected
@@ -645,9 +700,9 @@ contTablesClass <- R6::R6Class(
 
             # Set the table title and determine if the Residuals column should be shown
             if (oneResidualSelected) {
-                selectedIndex   <- which(residualSelections)
-                singleResTitle  <- subTitlesPh[selectedIndex]
-                phTitle <- jmvcore::format(.('Post Hoc Test ({title})'), title=singleResTitle)
+                selectedIndex <- which(residualSelections)
+                singleResTitle <- subTitlesPh[selectedIndex]
+                phTitle <- jmvcore::format(.('Post Hoc Test ({title})'), title = singleResTitle)
                 postHoc$setTitle(phTitle)
                 showResidualsCol <- FALSE
             } else {
@@ -673,9 +728,9 @@ contTablesClass <- R6::R6Class(
                 }
 
                 postHoc$addColumn(
-                    name  = paste0('type', subName),
+                    name = paste0('type', subName),
                     title = 'Type',
-                    type  = 'text',
+                    type = 'text',
                     visible = vPh
                 )
             }
@@ -686,25 +741,22 @@ contTablesClass <- R6::R6Class(
                 for (j in seq_along(subNamesPh)) {
                     subName <- subNamesPh[j]
                     postHoc$addColumn(
-                        name       = paste0(i, subName),
-                        title      = level,
+                        name = paste0(i, subName),
+                        title = level,
                         superTitle = superTitle,
-                        type       = typesPh[j],
-                        format     = formatsPh[j],
-                        visible    = visiblePh[j]
+                        type = typesPh[j],
+                        format = formatsPh[j],
+                        visible = visiblePh[j]
                     )
                 }
             }
 
             # Prepare row expansion (for row variable and layers)
             expand <- list()
-            if (is.null(rowVarName))
-                expand[['.']] <- '.'
-            else
+            if (is.null(rowVarName)) expand[['.']] <- '.' else
                 expand[[rowVarName]] <- levels(data[[rowVarName]])
 
-            for (layerName in layerNames)
-                expand[[layerName]] <- levels(data[[layerName]])
+            for (layerName in layerNames) expand[[layerName]] <- levels(data[[layerName]])
 
             rows <- rev(expand.grid(expand))
 
@@ -722,50 +774,47 @@ contTablesClass <- R6::R6Class(
                     values[[colName]] <- as.character(rows[i, colName])
                 }
 
-                key <- paste0(rows[i, ], collapse='`')
-                postHoc$addRow(rowKey=key, values=values)
+                key <- paste0(rows[i, ], collapse = '`')
+                postHoc$addRow(rowKey = key, values = values)
 
                 if (nextIsNewGroup) {
-                    postHoc$addFormat(rowNo=i, 1, Cell.BEGIN_GROUP)
+                    postHoc$addFormat(rowNo = i, 1, Cell.BEGIN_GROUP)
                     nextIsNewGroup <- FALSE
                 }
             }
         },
-        .populatePostHocTable = function(data=data) {
-
+        .populatePostHocTable = function(data = data) {
             rowVarName <- self$options$rows
             colVarName <- self$options$cols
             layerNames <- self$options$layers
-            postHoc    <- self$results$postHoc
+            postHoc <- self$results$postHoc
 
             # Build the frequency tables (same logic as before)
             if (length(layerNames) == 0) {
-                matsPh <- list(ftable(xtabs(.COUNTS ~ ., data=data)))
+                matsPh <- list(ftable(xtabs(.COUNTS ~ ., data = data)))
             } else {
                 layerData <- jmvcore::select(data, layerNames)
-                dataList  <- do.call(split, list(data, layerData))
+                dataList <- do.call(split, list(data, layerData))
 
                 tables <- lapply(dataList, function(x) {
                     xTemp <- jmvcore::select(x, c('.COUNTS', rowVarName, colVarName))
-                    ftable(xtabs(.COUNTS ~ ., data=xTemp))
+                    ftable(xtabs(.COUNTS ~ ., data = xTemp))
                 })
 
                 expand <- list()
-                for (layerName in layerNames)
-                    expand[[layerName]] <- levels(data[[layerName]])
+                for (layerName in layerNames) expand[[layerName]] <- levels(data[[layerName]])
                 rows <- rev(expand.grid(expand))
 
                 expand <- list()
-                for (layerName in layerNames)
-                    expand[[layerName]] <- levels(data[[layerName]])
+                for (layerName in layerNames) expand[[layerName]] <- levels(data[[layerName]])
                 tableNames <- rev(expand.grid(expand))
 
                 matsPh <- list()
-                for (i in seq_along(rows[,1])) {
-                    rowLevels <- as.character(unlist(rows[i,]))
+                for (i in seq_along(rows[, 1])) {
+                    rowLevels <- as.character(unlist(rows[i, ]))
                     indices <- c()
-                    for (j in seq_along(tableNames[,1])) {
-                        tableNameLevels <- as.character(unlist(tableNames[j,]))
+                    for (j in seq_along(tableNames[, 1])) {
+                        tableNameLevels <- as.character(unlist(tableNames[j, ]))
                         if (all(rowLevels == tableNameLevels | rowLevels == '.total'))
                             indices <- c(indices, j)
                     }
@@ -779,24 +828,29 @@ contTablesClass <- R6::R6Class(
             freqRowNo <- 1
 
             # Determine highlight thresholds
-            hlValueP <- if (self$options$resP || self$options$hlresP) jmvcore::toNumeric(self$options$hlresP) else NA
-            hlValueS <- if (self$options$resS || self$options$hlresS) jmvcore::toNumeric(self$options$hlresS) else NA
-            hlValueA <- if (self$options$resA || self$options$hlresA) jmvcore::toNumeric(self$options$hlresA) else NA
+            hlValueP <- if (self$options$resP || self$options$hlresP)
+                jmvcore::toNumeric(self$options$hlresP) else NA
+            hlValueS <- if (self$options$resS || self$options$hlresS)
+                jmvcore::toNumeric(self$options$hlresS) else NA
+            hlValueA <- if (self$options$resA || self$options$hlresA)
+                jmvcore::toNumeric(self$options$hlresA) else NA
 
             # Recalculate residuals every time (simple approach, as in CFA code)
             for (mat in matsPh) {
                 suppressWarnings({
-                    test <- try(chisq.test(mat, correct=FALSE))
+                    test <- try(chisq.test(mat, correct = FALSE))
                     exp <- if (inherits(test, 'try-error')) mat else test$expected
                 })
 
                 residualsU <- residualsP <- residualsS <- residualsA <- NULL
-                if (self$options$resU || self$options$resP || self$options$resS || self$options$resA) {
+                if (
+                    self$options$resU || self$options$resP || self$options$resS || self$options$resA
+                ) {
                     # Compute residuals straightforwardly
                     if (inherits(test, 'try-error')) {
-                        residualsU <- matrix(NA, nrow=nrow(mat), ncol=ncol(mat))
-                        residualsP <- matrix(NA, nrow=nrow(mat), ncol=ncol(mat))
-                        residualsS <- matrix(NA, nrow=nrow(mat), ncol=ncol(mat))
+                        residualsU <- matrix(NA, nrow = nrow(mat), ncol = ncol(mat))
+                        residualsP <- matrix(NA, nrow = nrow(mat), ncol = ncol(mat))
+                        residualsS <- matrix(NA, nrow = nrow(mat), ncol = ncol(mat))
                     } else {
                         residualsU <- mat - exp
                         residualsP <- test$residuals
@@ -805,25 +859,27 @@ contTablesClass <- R6::R6Class(
 
                     df <- as.data.frame(as.table(mat))
                     names(df) <- c("Row", "Col", "Count")
-                    model <- try(glm(Count ~ Row + Col, data=df, family=poisson()), silent=TRUE)
+                    model <- try(
+                        glm(Count ~ Row + Col, data = df, family = poisson()),
+                        silent = TRUE
+                    )
                     if (!inherits(model, 'try-error')) {
-                        resAvector <- residuals(model, type="deviance")
+                        resAvector <- residuals(model, type = "deviance")
                         residualsA <- matrix(
                             resAvector,
-                            nrow=nrow(mat),
-                            ncol=ncol(mat),
-                            byrow=FALSE,
-                            dimnames=dimnames(mat)
+                            nrow = nrow(mat),
+                            ncol = ncol(mat),
+                            byrow = FALSE,
+                            dimnames = dimnames(mat)
                         )
                     } else {
-                        residualsA <- matrix(NA, nrow=nrow(mat), ncol=ncol(mat))
+                        residualsA <- matrix(NA, nrow = nrow(mat), ncol = ncol(mat))
                     }
                 }
 
                 # Internal helper
                 getValues <- function(active, residuals, suffix) {
-                    if (!active || is.null(residuals))
-                        return(list())
+                    if (!active || is.null(residuals)) return(list())
                     vals <- as.list(residuals[rowNo, ])
                     names(vals) <- paste0(seq_len(nCols), suffix)
                     vals
@@ -831,7 +887,6 @@ contTablesClass <- R6::R6Class(
 
                 # Now populate rows and highlight
                 for (rowNo in seq_len(nRows)) {
-
                     rowValues <- c(
                         getValues(self$options$resU, residualsU, "[resU]"),
                         getValues(self$options$resP, residualsP, "[resP]"),
@@ -840,24 +895,31 @@ contTablesClass <- R6::R6Class(
                     )
 
                     # Set values for this row
-                    postHoc$setRow(rowNo=freqRowNo, values=rowValues)
+                    postHoc$setRow(rowNo = freqRowNo, values = rowValues)
 
                     # Apply highlighting just like in the CFA code:
                     # Check each cell and if it exceeds the threshold, add format
                     for (colIndex in seq_len(nCols)) {
-
                         # Pearson Residuals
                         if (!is.na(hlValueP) && self$options$resP) {
                             resValueP <- residualsP[rowNo, colIndex]
                             if (!is.na(resValueP) && abs(resValueP) > hlValueP)
-                                postHoc$addFormat(rowNo=freqRowNo, col=paste0(colIndex, "[resP]"), Cell.NEGATIVE)
+                                postHoc$addFormat(
+                                    rowNo = freqRowNo,
+                                    col = paste0(colIndex, "[resP]"),
+                                    Cell.NEGATIVE
+                                )
                         }
 
                         # Standardized Residuals (adjusted Pearson)
                         if (!is.na(hlValueS) && self$options$resS) {
                             resValueS <- residualsS[rowNo, colIndex]
                             if (!is.na(resValueS) && abs(resValueS) > hlValueS) {
-                                postHoc$addFormat(rowNo=freqRowNo, col=paste0(colIndex, "[resS]"), Cell.NEGATIVE)
+                                postHoc$addFormat(
+                                    rowNo = freqRowNo,
+                                    col = paste0(colIndex, "[resS]"),
+                                    Cell.NEGATIVE
+                                )
                             }
                         }
 
@@ -865,7 +927,11 @@ contTablesClass <- R6::R6Class(
                         if (!is.na(hlValueA) && self$options$resA) {
                             resValueA <- residualsA[rowNo, colIndex]
                             if (!is.na(resValueA) && abs(resValueA) > hlValueA) {
-                                postHoc$addFormat(rowNo=freqRowNo, col=paste0(colIndex, "[resA]"), Cell.NEGATIVE)
+                                postHoc$addFormat(
+                                    rowNo = freqRowNo,
+                                    col = paste0(colIndex, "[resA]"),
+                                    Cell.NEGATIVE
+                                )
                             }
                         }
                     }
@@ -883,34 +949,27 @@ contTablesClass <- R6::R6Class(
             height <- 400
 
             layerNames <- self$options$layers
-            if (length(layerNames) == 1)
-                image$setSize(width * 2, height)
-            else if (length(layerNames) >= 2)
+            if (length(layerNames) == 1) image$setSize(width * 2, height) else if (
+                length(layerNames) >= 2
+            )
                 image$setSize(width * 2, height * 2)
         },
         .barPlot = function(image, ggtheme, theme, ...) {
-
-            if (! self$options$barplot)
-                return()
+            if (!self$options$barplot) return()
 
             rowVarName <- self$options$rows
-            if (! is.null(rowVarName))
-                rowVarName <- jmvcore::toB64(rowVarName)
+            if (!is.null(rowVarName)) rowVarName <- jmvcore::toB64(rowVarName)
 
             colVarName <- self$options$cols
-            if (! is.null(colVarName))
-                colVarName <- jmvcore::toB64(colVarName)
+            if (!is.null(colVarName)) colVarName <- jmvcore::toB64(colVarName)
 
             countsName <- jmvcore::toB64('.COUNTS')
 
             layerNames <- self$options$layers
-            if (length(layerNames) > 0)
-                layerNames <- jmvcore::toB64(layerNames)
-            if (length(layerNames) > 2)
-                layerNames <- layerNames[1:2] # max 2
+            if (length(layerNames) > 0) layerNames <- jmvcore::toB64(layerNames)
+            if (length(layerNames) > 2) layerNames <- layerNames[1:2] # max 2
 
-            if (is.null(rowVarName) || is.null(colVarName))
-                return()
+            if (is.null(rowVarName) || is.null(colVarName)) return()
 
             data <- private$.cleanData(B64 = TRUE)
             data <- na.omit(data)
@@ -920,19 +979,20 @@ contTablesClass <- R6::R6Class(
             d <- dim(counts)
 
             expand <- list()
-            for (i in c(rowVarName, colVarName, layerNames))
-                expand[[i]] <- base::levels(data[[i]])
+            for (i in c(rowVarName, colVarName, layerNames)) expand[[i]] <- base::levels(data[[i]])
             tab <- expand.grid(expand)
             tab$Counts <- as.numeric(counts)
 
-            if (self$options$yaxis == "ypc") { # percentages
+            if (self$options$yaxis == "ypc") {
+                # percentages
                 props <- counts
 
                 if (self$options$yaxisPc == "column_pc") {
                     pctVarName <- colVarName
                 } else if (self$options$yaxisPc == "row_pc") {
                     pctVarName <- rowVarName
-                } else { # total
+                } else {
+                    # total
                     pctVarName <- NULL
                 }
 
@@ -940,12 +1000,13 @@ contTablesClass <- R6::R6Class(
                     props <- proportions(counts, pctVarName)
                 } else if (length(layerNames) == 1) {
                     for (i in seq.int(1, d[3], 1)) {
-                        props[,,i] <- proportions(counts[,,i], pctVarName)
+                        props[,, i] <- proportions(counts[,, i], pctVarName)
                     }
-                } else { # 2 layers
+                } else {
+                    # 2 layers
                     for (i in seq.int(1, d[3], 1)) {
                         for (j in seq.int(1, d[4], 1)) {
-                            props[,,i,j] <- proportions(counts[,,i,j], pctVarName)
+                            props[,, i, j] <- proportions(counts[,, i, j], pctVarName)
                         }
                     }
                 }
@@ -964,26 +1025,31 @@ contTablesClass <- R6::R6Class(
             position <- self$options$bartype
 
             if (self$options$yaxis == "ycounts") {
-                p <- ggplot(data=tab, aes(y=Counts, x=!!xVarName, fill=!!zVarName)) +
-                    geom_col(position=position, width = 0.7) +
+                p <- ggplot(data = tab, aes(y = Counts, x = !!xVarName, fill = !!zVarName)) +
+                    geom_col(position = position, width = 0.7) +
                     labs(y = .("Counts"))
             } else {
-                p <- ggplot(data=tab, aes(y=Percentages, x=!!xVarName, fill=!!zVarName)) +
-                    geom_col(position=position, width = 0.7)
+                p <- ggplot(data = tab, aes(y = Percentages, x = !!xVarName, fill = !!zVarName)) +
+                    geom_col(position = position, width = 0.7)
 
                 if (self$options$yaxisPc == "total_pc") {
                     p <- p + labs(y = .("Percentages of total"))
                 } else {
-                    p <- p + labs(y = jmvcore::format(.("Percentages within {var}"), var=jmvcore::fromB64(pctVarName)))
+                    p <- p +
+                        labs(
+                            y = jmvcore::format(
+                                .("Percentages within {var}"),
+                                var = jmvcore::fromB64(pctVarName)
+                            )
+                        )
                 }
             }
 
-            p <- p + labs(x=jmvcore::fromB64(xVarName), fill=jmvcore::fromB64(zVarName))
+            p <- p + labs(x = jmvcore::fromB64(xVarName), fill = jmvcore::fromB64(zVarName))
 
             if (length(layerNames) > 0) {
                 if (length(layerNames) == 1)
-                    layers <- as.formula(jmvcore::composeFormula(NULL, layerNames))
-                else
+                    layers <- as.formula(jmvcore::composeFormula(NULL, layerNames)) else
                     layers <- as.formula(jmvcore::composeFormula(layerNames[1], layerNames[2]))
 
                 p <- p + facet_grid(layers)
@@ -995,7 +1061,6 @@ contTablesClass <- R6::R6Class(
 
         #### Helper functions ----
         .cleanData = function(B64 = FALSE) {
-
             data <- self$data
 
             rowVarName <- self$options$rows
@@ -1005,26 +1070,25 @@ contTablesClass <- R6::R6Class(
 
             columns <- list()
 
-            if ( ! is.null(rowVarName)) {
+            if (!is.null(rowVarName)) {
                 columns[[rowVarName]] <- as.factor(data[[rowVarName]])
             }
-            if ( ! is.null(colVarName)) {
+            if (!is.null(colVarName)) {
                 columns[[colVarName]] <- as.factor(data[[colVarName]])
             }
             for (layerName in layerNames) {
                 columns[[layerName]] <- as.factor(data[[layerName]])
             }
 
-            if ( ! is.null(countsName)) {
+            if (!is.null(countsName)) {
                 columns[['.COUNTS']] <- jmvcore::toNumeric(data[[countsName]])
-            } else if ( ! is.null(attr(data, "jmv-weights"))) {
+            } else if (!is.null(attr(data, "jmv-weights"))) {
                 columns[['.COUNTS']] <- jmvcore::toNumeric(attr(data, "jmv-weights"))
             } else {
                 columns[['.COUNTS']] <- as.integer(rep(1, nrow(data)))
             }
 
-            if (B64)
-                names(columns) <- jmvcore::toB64(names(columns))
+            if (B64) names(columns) <- jmvcore::toB64(names(columns))
 
             attr(columns, 'row.names') <- paste(seq_len(length(columns[[1]])))
             class(columns) <- 'data.frame'
@@ -1032,7 +1096,6 @@ contTablesClass <- R6::R6Class(
             columns
         },
         .matrices = function(data) {
-
             matrices <- list()
 
             rowVarName <- self$options$rows
@@ -1040,61 +1103,49 @@ contTablesClass <- R6::R6Class(
             layerNames <- self$options$layers
 
             if (length(layerNames) == 0) {
-
-                matrices <- list(ftable(xtabs(.COUNTS ~ ., data=data)))
-
+                matrices <- list(ftable(xtabs(.COUNTS ~ ., data = data)))
             } else {
-
                 layerData <- jmvcore::select(data, layerNames)
                 dataList <- do.call(split, list(data, layerData))
 
                 tables <- lapply(dataList, function(x) {
-
                     xTemp <- jmvcore::select(x, c('.COUNTS', rowVarName, colVarName))
 
-                    ftable(xtabs(.COUNTS ~ ., data=xTemp))
+                    ftable(xtabs(.COUNTS ~ ., data = xTemp))
                 })
 
-                rows <- private$.grid(data=data, incRows=FALSE)
+                rows <- private$.grid(data = data, incRows = FALSE)
 
                 expand <- list()
 
-                for (layerName in layerNames)
-                    expand[[layerName]] <- base::levels(data[[layerName]])
+                for (layerName in layerNames) expand[[layerName]] <- base::levels(data[[layerName]])
 
                 tableNames <- rev(expand.grid(expand))
 
                 matrices <- list()
-                for (i in seq_along(rows[,1])) {
-
+                for (i in seq_along(rows[, 1])) {
                     indices <- c()
-                    for (j in seq_along(tableNames[,1])) {
+                    for (j in seq_along(tableNames[, 1])) {
+                        row <- as.character(unlist((rows[i, ])))
+                        tableName <- as.character(unlist(tableNames[j, ]))
 
-                        row <- as.character(unlist((rows[i,])))
-                        tableName <- as.character(unlist(tableNames[j,]))
-
-                        if (all(row == tableName | row == '.total'))
-                            indices <- c(indices, j)
+                        if (all(row == tableName | row == '.total')) indices <- c(indices, j)
                     }
 
                     matrices[[i]] <- Reduce(`+`, tables[indices])
                 }
-
             }
 
             matrices
         },
-        .grid = function(data, incRows=FALSE) {
-
+        .grid = function(data, incRows = FALSE) {
             rowVarName <- self$options$rows
             layerNames <- self$options$layers
 
             expand <- list()
 
             if (incRows) {
-                if (is.null(rowVarName))
-                    expand[['.']] <- c('.', '. ', .('Total'))
-                else
+                if (is.null(rowVarName)) expand[['.']] <- c('.', '. ', .('Total')) else
                     expand[[rowVarName]] <- c(base::levels(data[[rowVarName]]), '.total')
             }
 
@@ -1106,79 +1157,75 @@ contTablesClass <- R6::R6Class(
             rows
         },
         .diffProp = function(mat, Ha) {
-
             dims <- dim(mat)
 
-            if (dims[1] > 2 || dims[2] > 2)
-                return(NULL)
+            if (dims[1] > 2 || dims[2] > 2) return(NULL)
 
             ciWidth <- self$options$ciWidth / 100
 
-            if (self$options$compare == "columns")
-                mat <- t(mat)
+            if (self$options$compare == "columns") mat <- t(mat)
 
-            a <- mat[1,1]
-            b <- mat[1,2]
-            c <- mat[2,1]
-            d <- mat[2,2]
+            a <- mat[1, 1]
+            b <- mat[1, 2]
+            c <- mat[2, 1]
+            d <- mat[2, 2]
 
             p1 <- a / (a + b)
             p2 <- c / (c + d)
 
             dp <- p1 - p2
-            prtest <- stats::prop.test(mat, conf.level=ciWidth, correct=FALSE, alternative=Ha)
-            ci <-prtest$conf.int
+            prtest <- stats::prop.test(mat, conf.level = ciWidth, correct = FALSE, alternative = Ha)
+            ci <- prtest$conf.int
             lower <- ci[1]
             upper <- ci[2]
 
-            return(list(dp=dp, lower=lower, upper=upper,
-                        p.value=prtest$p.value, statistic=prtest$statistic))
-
+            return(list(
+                dp = dp,
+                lower = lower,
+                upper = upper,
+                p.value = prtest$p.value,
+                statistic = prtest$statistic
+            ))
         },
         .relativeRisk = function(mat) {
-
             # https://en.wikipedia.org/wiki/Relative_risk#Tests
 
             dims <- dim(mat)
 
-            if (dims[1] > 2 || dims[2] > 2)
-                return(NULL)
+            if (dims[1] > 2 || dims[2] > 2) return(NULL)
 
             ciWidth <- self$options$ciWidth
             tail <- (100 - ciWidth) / 200
             z <- qnorm(tail, lower.tail = FALSE)
 
-            if (self$options$compare == "columns")
-                mat <- t(mat)
+            if (self$options$compare == "columns") mat <- t(mat)
 
-            a <- mat[1,1]
-            b <- mat[1,2]
-            c <- mat[2,1]
-            d <- mat[2,2]
+            a <- mat[1, 1]
+            b <- mat[1, 2]
+            c <- mat[2, 1]
+            d <- mat[2, 2]
 
             p1 <- a / (a + b)
             p2 <- c / (c + d)
 
             m <- log(p1 / p2)
-            s <- sqrt((b / (a*(a+b))) + (d / (c*(c+d))))
-            lower <- exp(m - z*s)
-            upper <- exp(m + z*s)
+            s <- sqrt((b / (a * (a + b))) + (d / (c * (c + d))))
+            lower <- exp(m - z * s)
+            upper <- exp(m + z * s)
 
             rr <- p1 / p2
 
-            return(list(rr=rr, lower=lower, upper=upper))
-
+            return(list(rr = rr, lower = lower, upper = upper))
         },
         .sourcifyOption = function(option) {
-            if (option$name %in% c('rows', 'cols', 'counts'))
-                return('')
+            if (option$name %in% c('rows', 'cols', 'counts')) return('')
             super$.sourcifyOption(option)
         },
         .formula = function() {
             rhs <- list()
-            if ( ! is.null(self$options$rows)) {
+            if (!is.null(self$options$rows)) {
                 rhs[[1]] <- self$options$rows
-                if ( ! is.null(self$options$cols)) {
+                if (!is.null(self$options$cols)) {
                     rhs[[2]] <- self$options$cols
                     rhs <- c(rhs, self$options$layers)
                 }

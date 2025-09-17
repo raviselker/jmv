@@ -97,7 +97,7 @@ testthat::test_that('Error is thrown if grouping var has more than 2 levels', {
     testthat::expect_error(
         jmv::ttestIS(df, vars = "dep", group = "group"),
         "Grouping variable 'group' must have exactly 2 levels",
-        fixed=TRUE
+        fixed = TRUE
     )
 })
 
@@ -108,7 +108,14 @@ testthat::test_that('Matched rank biserial correlation is correct', {
         stringsAsFactors = TRUE
     )
 
-    r <- jmv::ttestIS(df, vars="score", group="group", mann=TRUE, students=FALSE, effectSize=TRUE)
+    r <- jmv::ttestIS(
+        df,
+        vars = "score",
+        group = "group",
+        mann = TRUE,
+        students = FALSE,
+        effectSize = TRUE
+    )
 
     # Test rank biserial correlation
     ttestTable <- r$ttest$asDF
@@ -124,7 +131,14 @@ testthat::test_that('Rank biserial correlation can be negative', {
         stringsAsFactors = TRUE
     )
 
-    r <- jmv::ttestIS(df, vars="score", group="group", mann=TRUE, students=FALSE, effectSize=TRUE)
+    r <- jmv::ttestIS(
+        df,
+        vars = "score",
+        group = "group",
+        mann = TRUE,
+        students = FALSE,
+        effectSize = TRUE
+    )
 
     # Test rank biserial correlation
     ttestTable <- r$ttest$asDF

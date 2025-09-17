@@ -37,7 +37,8 @@ testthat::test_that('checkData throws error when data contains only one unique n
 
 testthat::test_that('checkData throws error when data contains only one unique factor level', {
     df <- data.frame(
-        x = c('A', 'A', 'A', 'A', 'A'), stringsAsFactors = TRUE
+        x = c('A', 'A', 'A', 'A', 'A'),
+        stringsAsFactors = TRUE
     )
     expect_error(checkData(df, checkTypes$variable_contains_one_unique_value))
 })

@@ -15,8 +15,8 @@ testthat::test_that('All options in the linreg work (sunny)', {
         list("factor 1", "factor 2", c("factor 1", "factor 2"))
     )
     refLevels <- list(
-        list(var="factor 1", ref="Group 1"),
-        list(var="factor 2", ref="Treatment 1")
+        list(var = "factor 1", ref = "Group 1"),
+        list(var = "factor 2", ref = "Treatment 1")
     )
 
     r <- jmv::logLinear(
@@ -53,7 +53,8 @@ testthat::test_that('All options in the linreg work (sunny)', {
     # Test omnibus likelihood ratio tests table
     lrtTable <- r$models[[1]]$lrt$asDF
     testthat::expect_equal(
-        c('factor 1', 'factor 2', 'factor 1:factor 2'), lrtTable[['term']]
+        c('factor 1', 'factor 2', 'factor 1:factor 2'),
+        lrtTable[['term']]
     )
     testthat::expect_equal(c(1.443, 13.816, 1.773), lrtTable[['chi']], tolerance = 1e-3)
     testthat::expect_equal(c(1, 1, 1), lrtTable[['df']])
@@ -74,29 +75,45 @@ testthat::test_that('All options in the linreg work (sunny)', {
         coefTable[['term']]
     )
     testthat::expect_equal(
-        c(3.784, NA, 0.241, NA, 0.67, NA, -0.339), coefTable[['est']], tolerance = 1e-3
+        c(3.784, NA, 0.241, NA, 0.67, NA, -0.339),
+        coefTable[['est']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(3.489, NA, -0.154, NA, 0.307, NA, -0.839), coefTable[['lower']], tolerance = 1e-3
+        c(3.489, NA, -0.154, NA, 0.307, NA, -0.839),
+        coefTable[['lower']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(4.08, NA, 0.636, NA, 1.033, NA, 0.161), coefTable[['upper']], tolerance = 1e-3
+        c(4.08, NA, 0.636, NA, 1.033, NA, 0.161),
+        coefTable[['upper']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.151, NA, 0.201, NA, 0.185, NA, 0.255), coefTable[['se']], tolerance = 1e-3
+        c(0.151, NA, 0.201, NA, 0.185, NA, 0.255),
+        coefTable[['se']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(25.102, NA, 1.197, NA, 3.616, NA, -1.329), coefTable[['z']], tolerance = 1e-3
+        c(25.102, NA, 1.197, NA, 3.616, NA, -1.329),
+        coefTable[['z']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(c(0, NA, 0.231, NA, 0, NA, 0.184), coefTable[['p']], tolerance = 1e-3)
     testthat::expect_equal(
-        c(44, NA, 1.273, NA, 1.955, NA, 0.713), coefTable[['rate']], tolerance = 1e-3
+        c(44, NA, 1.273, NA, 1.955, NA, 0.713),
+        coefTable[['rate']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(32.744, NA, 0.858, NA, 1.359, NA, 0.432), coefTable[['rateLower']], tolerance = 1e-3
+        c(32.744, NA, 0.858, NA, 1.359, NA, 0.432),
+        coefTable[['rateLower']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(59.126, NA, 1.889, NA, 2.811, NA, 1.175), coefTable[['rateUpper']], tolerance = 1e-3
+        c(59.126, NA, 1.889, NA, 2.811, NA, 1.175),
+        coefTable[['rateUpper']],
+        tolerance = 1e-3
     )
 
     # Test estimated marginal means
@@ -120,32 +137,41 @@ testthat::test_that('All options in the linreg work (sunny)', {
         emmInteractionTable[['factor 2']]
     )
     testthat::expect_equal(
-        c('Group 1', 'Group 2', 'Group 1', 'Group 2'), emmInteractionTable[['factor 1']]
+        c('Group 1', 'Group 2', 'Group 1', 'Group 2'),
+        emmInteractionTable[['factor 1']]
     )
     testthat::expect_equal(c(44, 56, 86, 78), emmInteractionTable[['counts']], tolerance = 1e-3)
     testthat::expect_equal(
-        c(6.633, 7.483, 9.274, 8.832), emmInteractionTable[['se']], tolerance = 1e-3
+        c(6.633, 7.483, 9.274, 8.832),
+        emmInteractionTable[['se']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(32.744, 43.096, 69.616, 62.476), emmInteractionTable[['lower']], tolerance = 1e-3
+        c(32.744, 43.096, 69.616, 62.476),
+        emmInteractionTable[['lower']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(59.126, 72.767, 106.239, 97.381), emmInteractionTable[['upper']], tolerance = 1e-3
+        c(59.126, 72.767, 106.239, 97.381),
+        emmInteractionTable[['upper']],
+        tolerance = 1e-3
     )
 })
 
 testthat::test_that('loglinear works old scenario', {
     data('mtcars')
 
-    tab <- table('gear'=mtcars$gear, 'cyl'=mtcars$cyl)
+    tab <- table('gear' = mtcars$gear, 'cyl' = mtcars$cyl)
     dat <- as.data.frame(tab)
 
     logLin <- jmv::logLinear(
-        data = dat, factors = c("gear", "cyl"),  counts = "Freq",
+        data = dat,
+        factors = c("gear", "cyl"),
+        counts = "Freq",
         blocks = list(list("gear", "cyl", c("gear", "cyl"))),
         refLevels = list(
-            list(var="gear", ref="3"),
-            list(var="cyl", ref="4")
+            list(var = "gear", ref = "3"),
+            list(var = "cyl", ref = "4")
         )
     )
 
@@ -167,10 +193,10 @@ testthat::test_that('Provide error message when factor contains fewer than two l
 
     testthat::expect_error(
         jmv::logLinear(
-            data=df,
-            factors="x",
-            blocks=list(list("x")),
-            refLevels = list(list(var="x", ref="1"))
+            data = df,
+            factors = "x",
+            blocks = list(list("x")),
+            refLevels = list(list(var = "x", ref = "1"))
         ),
         "Factors must have at least two levels"
     )
@@ -181,26 +207,29 @@ testthat::test_that('Provide error message when data contains only missing value
 
     testthat::expect_error(
         jmv::logLinear(
-            data=df,
-            factors="x",
-            blocks=list(list("x")),
-            refLevels = list(list(var="x", ref=NULL))
+            data = df,
+            factors = "x",
+            blocks = list(list("x")),
+            refLevels = list(list(var = "x", ref = NULL))
         ),
         "The dataset contains 0 rows"
     )
 })
 
 params <- list(
-    list(refLevels = list(list(var="factor_1", ref="x"), list(var="factor_2", ref="X")), info = "Non-existing reference levels"),
+    list(
+        refLevels = list(list(var = "factor_1", ref = "x"), list(var = "factor_2", ref = "X")),
+        info = "Non-existing reference levels"
+    ),
     list(refLevels = NULL, info = "No reference levels"),
-    list(refLevels = list(list(var="wrong_factor", ref="A")), info = "Wrong variable name")
+    list(refLevels = list(list(var = "wrong_factor", ref = "A")), info = "Wrong variable name")
 )
 testthat::test_that('Reference level defaults to first level for faulty reference levels', {
     for (param in params) {
         # GIVEN a dataset with a factor with two levels
         df <- data.frame(
-            factor_1 = rep(letters[1:3], length.out=10),
-            factor_2 = rep(LETTERS[1:2], length.out=10),
+            factor_1 = rep(letters[1:3], length.out = 10),
+            factor_2 = rep(LETTERS[1:2], length.out = 10),
             stringsAsFactors = TRUE
         )
 
@@ -213,11 +242,11 @@ testthat::test_that('Reference level defaults to first level for faulty referenc
         )
 
         # THEN the reference level should default to the first level for factor 1
-        testthat::expect_match(r$models[[1]]$coef$asDF$term[3], "b – a", info=param$info)
+        testthat::expect_match(r$models[[1]]$coef$asDF$term[3], "b – a", info = param$info)
         # THEN the reference level should default to the first level for factor 2
-        testthat::expect_match(r$models[[1]]$coef$asDF$term[6], "B – A", info=param$info)
+        testthat::expect_match(r$models[[1]]$coef$asDF$term[6], "B – A", info = param$info)
         # AND a warning is added informing the user that the user defined reference level does not
         #   exist and therefore was changed to the first level
-        testthat::expect_match(r[[1]]$content, "reference level was not found", info=param$info)
+        testthat::expect_match(r[[1]]$content, "reference level was not found", info = param$info)
     }
 })

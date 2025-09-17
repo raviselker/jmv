@@ -15,15 +15,15 @@ testthat::test_that('All options in the anovaRM work (sunny)', {
 
     rm <- list(
         list(
-            label="intake",
-            levels=c("m o n", "tue", "fri")
+            label = "intake",
+            levels = c("m o n", "tue", "fri")
         )
     )
 
     rmCells <- list(
-        list(measure="m o n", cell="m o n"),
-        list(measure="tue", cell="tue"),
-        list(measure="fri", cell="fri")
+        list(measure = "m o n", cell = "m o n"),
+        list(measure = "tue", cell = "tue"),
+        list(measure = "fri", cell = "fri")
     )
 
     postHoc <- list(
@@ -45,7 +45,7 @@ testthat::test_that('All options in the anovaRM work (sunny)', {
         leveneTest = TRUE,
         postHoc = postHoc,
         postHocCorr = c("tukey", "none", "scheffe", "bonf", "holm"),
-        emMeans = ~intake + between + intake:between,
+        emMeans = ~ intake + between + intake:between,
         emmPlots = FALSE,
         emmTables = TRUE,
         groupSumm = TRUE
@@ -88,7 +88,6 @@ testthat::test_that('All options in the anovaRM work (sunny)', {
     testthat::expect_equal(c(0.002, NA), bsTable[['ges']], tolerance = 1e-3)
     testthat::expect_equal(c(0.002, NA), bsTable[['eta']], tolerance = 1e-3)
     testthat::expect_equal(c(0.006, NA), bsTable[['partEta']], tolerance = 1e-3)
-
 
     # Test sphericity table
     spherTable <- r$assump$spherTable$asDF
@@ -134,77 +133,545 @@ testthat::test_that('All options in the anovaRM work (sunny)', {
 
     postHocTable3 <- r$postHoc[[3]]$asDF
     testthat::expect_equal(
-        c('m o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n',
-          'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n', 'm o n',
-          'm o n', 'tue', 'tue', 'tue', 'tue', 'tue', 'tue', 'tue', 'tue', 'tue', 'tue', 'tue',
-          'tue', 'fri', 'fri', 'fri'),
+        c(
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'm o n',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'tue',
+            'fri',
+            'fri',
+            'fri'
+        ),
         postHocTable3[['intake1']],
     )
     testthat::expect_equal(
-        c('A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'C', 'C', 'C',
-          'C', 'C', 'C', 'A', 'A', 'A', 'A', 'A', 'B', 'B', 'B', 'B', 'C', 'C', 'C', 'A', 'A', 'B'),
+        c(
+            'A',
+            'A',
+            'A',
+            'A',
+            'A',
+            'A',
+            'A',
+            'A',
+            'B',
+            'B',
+            'B',
+            'B',
+            'B',
+            'B',
+            'B',
+            'C',
+            'C',
+            'C',
+            'C',
+            'C',
+            'C',
+            'A',
+            'A',
+            'A',
+            'A',
+            'A',
+            'B',
+            'B',
+            'B',
+            'B',
+            'C',
+            'C',
+            'C',
+            'A',
+            'A',
+            'B'
+        ),
         postHocTable3[['between1']],
     )
     testthat::expect_equal(
-        c('m o n', 'm o n', 'tue', 'tue', 'tue', 'fri', 'fri', 'fri', 'm o n', 'tue', 'tue', 'tue',
-          'fri', 'fri', 'fri', 'tue', 'tue', 'tue', 'fri', 'fri', 'fri', 'tue', 'tue', 'fri', 'fri',
-          'fri', 'tue', 'fri', 'fri', 'fri', 'fri', 'fri', 'fri', 'fri', 'fri', 'fri'),
+        c(
+            'm o n',
+            'm o n',
+            'tue',
+            'tue',
+            'tue',
+            'fri',
+            'fri',
+            'fri',
+            'm o n',
+            'tue',
+            'tue',
+            'tue',
+            'fri',
+            'fri',
+            'fri',
+            'tue',
+            'tue',
+            'tue',
+            'fri',
+            'fri',
+            'fri',
+            'tue',
+            'tue',
+            'fri',
+            'fri',
+            'fri',
+            'tue',
+            'fri',
+            'fri',
+            'fri',
+            'fri',
+            'fri',
+            'fri',
+            'fri',
+            'fri',
+            'fri'
+        ),
         postHocTable3[['intake2']]
     )
     testthat::expect_equal(
-        c('B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C',
-          'A', 'B', 'C', 'B', 'C', 'A', 'B', 'C', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'B', 'C', 'C'),
+        c(
+            'B',
+            'C',
+            'A',
+            'B',
+            'C',
+            'A',
+            'B',
+            'C',
+            'C',
+            'A',
+            'B',
+            'C',
+            'A',
+            'B',
+            'C',
+            'A',
+            'B',
+            'C',
+            'A',
+            'B',
+            'C',
+            'B',
+            'C',
+            'A',
+            'B',
+            'C',
+            'C',
+            'A',
+            'B',
+            'C',
+            'A',
+            'B',
+            'C',
+            'B',
+            'C',
+            'C'
+        ),
         postHocTable3[['between2']]
     )
     testthat::expect_equal(
-        c(0.067, -0.286, -0.202, -0.376, -0.058, -0.076, -0.052, -0.286, -0.353, -0.268, -0.443,
-          -0.125, -0.143, -0.119, -0.353, 0.084, -0.09, 0.228, 0.21, 0.234, 0, -0.175, 0.144, 0.125,
-          0.15, -0.084, 0.318, 0.3, 0.325, 0.09, -0.018, 0.006, -0.228, 0.025, -0.21, -0.234),
-        postHocTable3[['md']], tolerance = 1e-3
+        c(
+            0.067,
+            -0.286,
+            -0.202,
+            -0.376,
+            -0.058,
+            -0.076,
+            -0.052,
+            -0.286,
+            -0.353,
+            -0.268,
+            -0.443,
+            -0.125,
+            -0.143,
+            -0.119,
+            -0.353,
+            0.084,
+            -0.09,
+            0.228,
+            0.21,
+            0.234,
+            0,
+            -0.175,
+            0.144,
+            0.125,
+            0.15,
+            -0.084,
+            0.318,
+            0.3,
+            0.325,
+            0.09,
+            -0.018,
+            0.006,
+            -0.228,
+            0.025,
+            -0.21,
+            -0.234
+        ),
+        postHocTable3[['md']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.307, 0.323, 0.291, 0.304, 0.319, 0.271, 0.314, 0.331, 0.342, 0.304, 0.334, 0.339, 0.312,
-          0.311, 0.35, 0.32, 0.339, 0.364, 0.328, 0.349, 0.338, 0.301, 0.317, 0.263, 0.312, 0.329,
-          0.336, 0.31, 0.302, 0.347, 0.325, 0.346, 0.329, 0.32, 0.336, 0.357),
-        postHocTable3[['se']], tolerance = 1e-3
+        c(
+            0.307,
+            0.323,
+            0.291,
+            0.304,
+            0.319,
+            0.271,
+            0.314,
+            0.331,
+            0.342,
+            0.304,
+            0.334,
+            0.339,
+            0.312,
+            0.311,
+            0.35,
+            0.32,
+            0.339,
+            0.364,
+            0.328,
+            0.349,
+            0.338,
+            0.301,
+            0.317,
+            0.263,
+            0.312,
+            0.329,
+            0.336,
+            0.31,
+            0.302,
+            0.347,
+            0.325,
+            0.346,
+            0.329,
+            0.32,
+            0.336,
+            0.357
+        ),
+        postHocTable3[['se']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
-          57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57),
+        c(
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57,
+            57
+        ),
         postHocTable3[['df']]
     )
     testthat::expect_equal(
-        c(0.217, -0.887, -0.693, -1.24, -0.182, -0.282, -0.165, -0.865, -1.032, -0.882, -1.327,
-          -0.368, -0.458, -0.382, -1.009, 0.263, -0.266, 0.627, 0.639, 0.672, -0.001, -0.579, 0.453,
-          0.477, 0.481, -0.257, 0.947, 0.969, 1.077, 0.26, -0.057, 0.018, -0.694, 0.077, -0.624,
-          -0.658),
-        postHocTable3[['t']], tolerance = 1e-3
+        c(
+            0.217,
+            -0.887,
+            -0.693,
+            -1.24,
+            -0.182,
+            -0.282,
+            -0.165,
+            -0.865,
+            -1.032,
+            -0.882,
+            -1.327,
+            -0.368,
+            -0.458,
+            -0.382,
+            -1.009,
+            0.263,
+            -0.266,
+            0.627,
+            0.639,
+            0.672,
+            -0.001,
+            -0.579,
+            0.453,
+            0.477,
+            0.481,
+            -0.257,
+            0.947,
+            0.969,
+            1.077,
+            0.26,
+            -0.057,
+            0.018,
+            -0.694,
+            0.077,
+            -0.624,
+            -0.658
+        ),
+        postHocTable3[['t']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(0.829, 0.379, 0.491, 0.22, 0.856, 0.779, 0.87, 0.391, 0.306, 0.381, 0.19, 0.714, 0.649,
-          0.704, 0.317, 0.794, 0.791, 0.533, 0.525, 0.504, 1, 0.565, 0.652, 0.635, 0.633, 0.798,
-          0.347, 0.336, 0.286, 0.796, 0.955, 0.986, 0.49, 0.939, 0.535, 0.513),
-        postHocTable3[['pnone']], tolerance = 1e-3
+        c(
+            0.829,
+            0.379,
+            0.491,
+            0.22,
+            0.856,
+            0.779,
+            0.87,
+            0.391,
+            0.306,
+            0.381,
+            0.19,
+            0.714,
+            0.649,
+            0.704,
+            0.317,
+            0.794,
+            0.791,
+            0.533,
+            0.525,
+            0.504,
+            1,
+            0.565,
+            0.652,
+            0.635,
+            0.633,
+            0.798,
+            0.347,
+            0.336,
+            0.286,
+            0.796,
+            0.955,
+            0.986,
+            0.49,
+            0.939,
+            0.535,
+            0.513
+        ),
+        postHocTable3[['pnone']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(1, 0.993, 0.999, 0.944, 1, 1, 1, 0.994, 0.981, 0.993, 0.919, 1, 1, 1, 0.984, 1, 1, 0.999,
-          0.999, 0.999, 1, 1, 1, 1, 1, 1, 0.989, 0.987, 0.975, 1, 1, 1, 0.999, 1, 0.999, 0.999),
-        postHocTable3[['ptukey']], tolerance = 1e-3
+        c(
+            1,
+            0.993,
+            0.999,
+            0.944,
+            1,
+            1,
+            1,
+            0.994,
+            0.981,
+            0.993,
+            0.919,
+            1,
+            1,
+            1,
+            0.984,
+            1,
+            1,
+            0.999,
+            0.999,
+            0.999,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0.989,
+            0.987,
+            0.975,
+            1,
+            1,
+            1,
+            0.999,
+            1,
+            0.999,
+            0.999
+        ),
+        postHocTable3[['ptukey']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(1, 0.999, 1, 0.991, 1, 1, 1, 0.999, 0.997, 0.999, 0.986, 1, 1, 1, 0.998, 1, 1, 1, 1, 1, 1,
-          1, 1, 1, 1, 1, 0.999, 0.998, 0.997, 1, 1, 1, 1, 1, 1, 1),
-        postHocTable3[['pscheffe']], tolerance = 1e-3
+        c(
+            1,
+            0.999,
+            1,
+            0.991,
+            1,
+            1,
+            1,
+            0.999,
+            0.997,
+            0.999,
+            0.986,
+            1,
+            1,
+            1,
+            0.998,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            0.999,
+            0.998,
+            0.997,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ),
+        postHocTable3[['pscheffe']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-          1, 1, 1, 1, 1, 1),
-        postHocTable3[['pbonferroni']], tolerance = 1e-3
+        c(
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ),
+        postHocTable3[['pbonferroni']],
+        tolerance = 1e-3
     )
     testthat::expect_equal(
-        c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-          1, 1, 1, 1, 1, 1),
-        postHocTable3[['pholm']], tolerance = 1e-3
+        c(
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+        ),
+        postHocTable3[['pholm']],
+        tolerance = 1e-3
     )
 
     # Test estimated marginal means tables
@@ -273,19 +740,25 @@ testthat::test_that("No sphericity stats are given if singularity error", {
         data = data,
         rm = list(
             list(
-                label="var",
-                levels=c("x1", "x2", "x3"))),
+                label = "var",
+                levels = c("x1", "x2", "x3")
+            )
+        ),
         rmCells = list(
             list(
-                measure="x1",
-                cell="x1"),
+                measure = "x1",
+                cell = "x1"
+            ),
             list(
-                measure="x2",
-                cell="x2"),
+                measure = "x2",
+                cell = "x2"
+            ),
             list(
-                measure="x3",
-                cell="x3")),
-        rmTerms = ~ var,
+                measure = "x3",
+                cell = "x3"
+            )
+        ),
+        rmTerms = ~var,
         spherCorr = c("none", "GG", "HF"),
         spherTests = TRUE
     )
@@ -317,23 +790,32 @@ testthat::test_that("Sphericity corrections are set to 1 for rm with only two le
         data = data,
         rm = list(
             list(
-                label="var",
-                levels=c("x1", "x2"))),
+                label = "var",
+                levels = c("x1", "x2")
+            )
+        ),
         rmCells = list(
             list(
-                measure="x1",
-                cell="x1"),
+                measure = "x1",
+                cell = "x1"
+            ),
             list(
-                measure="x2",
-                cell="x2")),
-        rmTerms = ~ var,
+                measure = "x2",
+                cell = "x2"
+            )
+        ),
+        rmTerms = ~var,
         spherCorr = c("none", "GG", "HF"),
         spherTests = TRUE
     )
 
     # THEN the sphericity table should have a footnote about that sphericty is always met
     spher <- r$assump$spherTable
-    testthat::expect_match(spher$footnotes, "assumption of sphericity is always met", ignore.case = TRUE)
+    testthat::expect_match(
+        spher$footnotes,
+        "assumption of sphericity is always met",
+        ignore.case = TRUE
+    )
     # AND the statistics should be 1
     testthat::expect_equal(1, spher$asDF[['mauch']])
     testthat::expect_equal(NaN, spher$asDF[['p']])
@@ -355,46 +837,46 @@ testthat::test_that("rm anova works for multiple rm vars", {
 
     rm = list(
         list(
-            label="rmVar1",
-            levels=c("a", "b")
+            label = "rmVar1",
+            levels = c("a", "b")
         ),
         list(
-            label="rmVar2",
-            levels=c("A", "B", "C")
+            label = "rmVar2",
+            levels = c("A", "B", "C")
         )
     )
 
     rmCells = list(
         list(
-            measure="a_A",
-            cell=c("a", "A")
+            measure = "a_A",
+            cell = c("a", "A")
         ),
         list(
-            measure="a_B",
-            cell=c("a", "B")
+            measure = "a_B",
+            cell = c("a", "B")
         ),
         list(
-            measure="a_C",
-            cell=c("a", "C")
+            measure = "a_C",
+            cell = c("a", "C")
         ),
         list(
-            measure="b_A",
-            cell=c("b", "A")
+            measure = "b_A",
+            cell = c("b", "A")
         ),
         list(
-            measure="b_B",
-            cell=c("b", "B")
+            measure = "b_B",
+            cell = c("b", "B")
         ),
         list(
-            measure="b_C",
-            cell=c("b", "C")
+            measure = "b_C",
+            cell = c("b", "C")
         )
     )
 
     r <- jmv::anovaRM(
-        data=data,
-        rm=rm,
-        rmCells=rmCells,
+        data = data,
+        rm = rm,
+        rmCells = rmCells,
         spherCorr = c("none", "GG", "HF"),
         spherTests = TRUE
     )
@@ -418,31 +900,40 @@ testthat::test_that('emmeans work for unbalanced data', {
         measure1 = rnorm(N, 0, 1),
         measure2 = rnorm(N, 1, 1),
         measure3 = rnorm(N, 2, 1),
-        bsFactor = sample(letters[1:2], replace=TRUE, prob=c(0.3, 0.7), size=N),
+        bsFactor = sample(letters[1:2], replace = TRUE, prob = c(0.3, 0.7), size = N),
         stringsAsFactors = TRUE
     )
 
     rm = list(list(
-        label="rmFactor",
-        levels=c("measure1", "measure2", "measure3")
+        label = "rmFactor",
+        levels = c("measure1", "measure2", "measure3")
     ))
 
     rmCells = list(
         list(
-            measure="measure1",
-            cell="measure1"),
+            measure = "measure1",
+            cell = "measure1"
+        ),
         list(
-            measure="measure2",
-            cell="measure2"),
+            measure = "measure2",
+            cell = "measure2"
+        ),
         list(
-            measure="measure3",
-            cell="measure3")
+            measure = "measure3",
+            cell = "measure3"
+        )
     )
 
     r <- jmv::anovaRM(
-        data=data, rm=rm, rmCells=rmCells, bs="bsFactor",
-        rmTerms=list("rmFactor"), bsTerms=list("bsFactor"),
-        emMeans = ~bsFactor:rmFactor, emmPlots = FALSE, emmTables = TRUE
+        data = data,
+        rm = rm,
+        rmCells = rmCells,
+        bs = "bsFactor",
+        rmTerms = list("rmFactor"),
+        bsTerms = list("bsFactor"),
+        emMeans = ~ bsFactor:rmFactor,
+        emmPlots = FALSE,
+        emmTables = TRUE
     )
 
     means <- aggregate(data[, -4], data[4], mean)
@@ -466,23 +957,23 @@ testthat::test_that('Provide error message when there are empty cells in bs desi
     )
 
     rm = list(list(
-        label="rmFactor",
-        levels=c("measure1", "measure2")
+        label = "rmFactor",
+        levels = c("measure1", "measure2")
     ))
 
     rmCells = list(
-        list(measure="measure1", cell="measure1"),
-        list(measure="measure2", cell="measure2")
+        list(measure = "measure1", cell = "measure1"),
+        list(measure = "measure2", cell = "measure2")
     )
 
     testthat::expect_error(
         jmv::anovaRM(
-            data=df,
-            rm=rm,
-            rmCells=rmCells,
-            bs=c("bsFactor1", "bsFactor2"),
-            rmTerms=list("rmFactor"),
-            bsTerms=list("bsFactor1", "bsFactor2")
+            data = df,
+            rm = rm,
+            rmCells = rmCells,
+            bs = c("bsFactor1", "bsFactor2"),
+            rmTerms = list("rmFactor"),
+            bsTerms = list("bsFactor1", "bsFactor2")
         ),
         "Empty cells in between subject design"
     )
@@ -500,23 +991,23 @@ testthat::test_that("No warnings are thrown when bs terms contains interaction",
     )
 
     rm = list(list(
-        label="rmFactor",
-        levels=c("measure1", "measure2")
+        label = "rmFactor",
+        levels = c("measure1", "measure2")
     ))
 
     rmCells = list(
-        list(measure="measure1", cell="measure1"),
-        list(measure="measure2", cell="measure2")
+        list(measure = "measure1", cell = "measure1"),
+        list(measure = "measure2", cell = "measure2")
     )
 
     testthat::expect_no_warning(
         jmv::anovaRM(
-            data=df,
-            rm=rm,
-            rmCells=rmCells,
-            bs=vars(bsFactor1, bsFactor2),
-            rmTerms=~rmFactor,
-            bsTerms=~bsFactor1 + bsFactor2 + bsFactor1:bsFactor2,
+            data = df,
+            rm = rm,
+            rmCells = rmCells,
+            bs = vars(bsFactor1, bsFactor2),
+            rmTerms = ~rmFactor,
+            bsTerms = ~ bsFactor1 + bsFactor2 + bsFactor1:bsFactor2,
         )
     )
 })
@@ -534,12 +1025,12 @@ testthat::test_that("Full model is used when terms are not defined by user", {
     # WHEN I run this analysis
     # BUT I don't add the bs and rm factors as parameters
     rm = list(list(
-        label="rmFactor 1",
-        levels=c("measure1", "measure2")
+        label = "rmFactor 1",
+        levels = c("measure1", "measure2")
     ))
     rmCells = list(
-        list(measure="measure1", cell="measure1"),
-        list(measure="measure2", cell="measure2")
+        list(measure = "measure1", cell = "measure1"),
+        list(measure = "measure2", cell = "measure2")
     )
     r <- jmv::anovaRM(data = df, rm = rm, bs = list("bsFactor 1"), rmCells = rmCells)
 

@@ -1,6 +1,6 @@
 testthat::context('anovaonew')
 
-data('ToothGrowth', package='datasets')
+data('ToothGrowth', package = 'datasets')
 
 testthat::test_that('All options in the anovaOneW work (sunny)', {
     dat <- ToothGrowth
@@ -19,7 +19,7 @@ testthat::test_that('All options in the anovaOneW work (sunny)', {
     )
 
     # Test anova table
-    main <-r$anova$asDF
+    main <- r$anova$asDF
     testthat::expect_equal(67.416, main$`F[fisher]`, tolerance = 1e-5)
     testthat::expect_equal(68.401, main$`F[welch]`, tolerance = 1e-5)
     testthat::expect_equal(2, main$`df1[fisher]`)
@@ -55,18 +55,38 @@ testthat::test_that('All options in the anovaOneW work (sunny)', {
 
     # Test post-hoc table
     postHoc <- r$postHoc[[1]]
-    testthat::expect_equal(-9.13, postHoc$getCell(rowKey="0.5", "1[md]")$value, tolerance = 1e-5)
-    testthat::expect_equal(-6.4766, postHoc$getCell(rowKey="0.5", "1[t]")$value, tolerance = 1e-5)
-    testthat::expect_equal(37.9864, postHoc$getCell(rowKey="0.5", "1[df]")$value, tolerance = 1e-5)
-    testthat::expect_equal(3.76225e-07, postHoc$getCell(rowKey="0.5", "1[p]")$value, tolerance = 1e-10)
+    testthat::expect_equal(-9.13, postHoc$getCell(rowKey = "0.5", "1[md]")$value, tolerance = 1e-5)
+    testthat::expect_equal(-6.4766, postHoc$getCell(rowKey = "0.5", "1[t]")$value, tolerance = 1e-5)
+    testthat::expect_equal(
+        37.9864,
+        postHoc$getCell(rowKey = "0.5", "1[df]")$value,
+        tolerance = 1e-5
+    )
+    testthat::expect_equal(
+        3.76225e-07,
+        postHoc$getCell(rowKey = "0.5", "1[p]")$value,
+        tolerance = 1e-10
+    )
 
-    testthat::expect_equal(-15.495, postHoc$getCell(rowKey="0.5", "2[md]")$value, tolerance = 1e-5)
-    testthat::expect_equal(-11.799, postHoc$getCell(rowKey="0.5", "2[t]")$value, tolerance = 1e-5)
-    testthat::expect_equal(36.8826, postHoc$getCell(rowKey="0.5", "2[df]")$value, tolerance = 1e-5)
-    testthat::expect_equal(0, postHoc$getCell(rowKey="0.5", "2[p]")$value, tolerance = 1e-10)
+    testthat::expect_equal(
+        -15.495,
+        postHoc$getCell(rowKey = "0.5", "2[md]")$value,
+        tolerance = 1e-5
+    )
+    testthat::expect_equal(-11.799, postHoc$getCell(rowKey = "0.5", "2[t]")$value, tolerance = 1e-5)
+    testthat::expect_equal(
+        36.8826,
+        postHoc$getCell(rowKey = "0.5", "2[df]")$value,
+        tolerance = 1e-5
+    )
+    testthat::expect_equal(0, postHoc$getCell(rowKey = "0.5", "2[p]")$value, tolerance = 1e-10)
 
-    testthat::expect_equal(-6.365, postHoc$getCell(rowKey="1", "2[md]")$value, tolerance = 1e-5)
-    testthat::expect_equal(-4.9005, postHoc$getCell(rowKey="1", "2[t]")$value, tolerance = 1e-5)
-    testthat::expect_equal(37.101, postHoc$getCell(rowKey="1", "2[df]")$value, tolerance = 1e-5)
-    testthat::expect_equal(5.5686e-05, postHoc$getCell(rowKey="1", "2[p]")$value, tolerance = 1e-9)
+    testthat::expect_equal(-6.365, postHoc$getCell(rowKey = "1", "2[md]")$value, tolerance = 1e-5)
+    testthat::expect_equal(-4.9005, postHoc$getCell(rowKey = "1", "2[t]")$value, tolerance = 1e-5)
+    testthat::expect_equal(37.101, postHoc$getCell(rowKey = "1", "2[df]")$value, tolerance = 1e-5)
+    testthat::expect_equal(
+        5.5686e-05,
+        postHoc$getCell(rowKey = "1", "2[p]")$value,
+        tolerance = 1e-9
+    )
 })
